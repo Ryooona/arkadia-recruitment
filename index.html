@@ -424,13 +424,8 @@
     <section id="inputScreen" class="screen active">
       <h1>Arkadia求人窓口<br>求人応募フォーム</h1>
       <p class="description">
-        必要事項と面接の希望日時をご入力ください。<br>
-        送信すると、入力内容のFlex Messageが「Arkadia求人窓口（@158zkwys）」のトークへ届きます。顔写真を添付した場合は、写真が先に画像メッセージとして届き、その後にFlex Messageが届きます。
+        必要事項と面接の希望日時をご入力ください。
       </p>
-      <div id="draftNotice" class="message-box">
-        入力途中の内容は、この端末に24時間一時保存されます。応募送信が完了すると削除されます。<br>
-        顔写真は安全のため一時保存されないため、ページを再表示した場合は再選択してください。
-      </div>
 
       <form id="applicationForm" novalidate>
         <div class="section-title">基本情報</div>
@@ -630,7 +625,6 @@
     const confirmError = document.getElementById('confirmError');
     const interviewSlots = document.getElementById('interviewSlots');
     const ageDisplay = document.getElementById('ageDisplay');
-    const draftNotice = document.getElementById('draftNotice');
     const birthYearSelect = document.getElementById('birthYear');
     const birthMonthSelect = document.getElementById('birthMonth');
     const birthDaySelect = document.getElementById('birthDay');
@@ -937,7 +931,6 @@
 
       restoringDraft = false;
       formDirty = true;
-      draftNotice.innerHTML = '前回の入力内容を復元しました。必要に応じて修正してください。<br>顔写真を添付する場合は、もう一度選択してください。';
       return true;
     }
 
