@@ -4,7 +4,7 @@
  * 役割：
  * 1) LIFFから受け取った応募内容をGoogleスプレッドシートへ追記
  * 2) 任意の顔写真をGoogle Driveへ保存し、保存先リンクをシートへ記録
- * 3) LINEのFlex Message（顔写真があれば続けて画像）送信後に送信済み状態を更新
+ * 3) LINEの写真付きFlex Message送信後に送信済み状態を更新
  */
 
 const CONFIG = {
@@ -21,7 +21,7 @@ const HEADERS = [
   '生年月日', '年齢', '性別（ジェンダー）', 'ポーカーディーラーのご経験', 'ディーラー歴',
   '所属店舗', 'ディーラーネーム', '電話番号', '顔写真ファイル名', '顔写真URL',
   'アピールポイント', '第1希望', '第2希望', '第3希望', 'その他・備考', 'LINE表示名',
-  'LINEユーザーID', 'LINE Flex送信', 'LINE画像送信', '処理状況', 'メモ'
+  'LINEユーザーID', 'LINE Flex送信', 'LINE画像表示', '処理状況', 'メモ'
 ];
 
 function doGet(e) {
@@ -123,8 +123,8 @@ function markLineSent(body) {
   const rowNumber = findRowBySubmissionId(sheet, submissionId);
   if (rowNumber < 2) throw new Error('応募IDに一致する記録が見つかりません。');
 
-  // Y列：LINE Flex、Z列：LINE画像、AA列：処理状況
-  const imageStatus = body.hasPhoto ? '送信済み' : '対象なし';
+  // Y列：LINE Flex、Z列：Flex内画像、AA列：処理状況
+  const imageStatus = body.hasPhoto ? 'Flex内表示済み' : '対象なし';
   sheet.getRange(rowNumber, 25, 1, 3).setValues([['送信済み', imageStatus, '受付済み']]);
   return jsonResponse({ ok: true, submissionId, lineSent: true });
 }
@@ -138,7 +138,7 @@ function findRowBySubmissionId(sheet, submissionId) {
 }
 
 function ensureStatusHeaders(sheet) {
-  sheet.getRange(1, 25, 1, 4).setValues([['LINE Flex送信', 'LINE画像送信', '処理状況', 'メモ']]);
+  sheet.getRange(1, 25, 1, 4).setValues([['LINE Flex送信', 'LINE画像表示', '処理状況', 'メモ']]);
 }
 
 function formatSlot(slot) {
@@ -161,7 +161,7 @@ function savePhoto(photo, submissionId) {
   const folder = getPhotoFolder();
   const blob = Utilities.newBlob(Utilities.base64Decode(base64), mimeType, `${submissionId}_${fileName}`);
   const file = folder.createFile(blob);
-  // LINEの画像メッセージから取得できるよう、リンクを知っているユーザーに閲覧を許可する。
+  // LINEのFlex画像コンポーネントから取得できるよう、リンクを知っているユーザーに閲覧を許可する。
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   return { fileName, url: file.getUrl() };
 }

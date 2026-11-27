@@ -79,7 +79,6 @@ const application = {
   dealerName: '',
   preferredStore: '船橋店',
   phone: '09012345678',
-  email: 'taro@example.com',
   appeal: '接客経験があります。',
   interviewSlots: [
     { label: '第1希望', display: '12月03日（木）18時00分から19時00分までの間' },
@@ -98,17 +97,15 @@ const altText = vm.runInContext(
   'buildApplicationAltText(' + JSON.stringify(application) + ')',
   context
 );
-const imageMessage = vm.runInContext(
-  'buildApplicationImageMessage({ originalContentUrl: "https://example.com/original.jpg", previewImageUrl: "https://example.com/preview.jpg" })',
+const payloadWithPhoto = vm.runInContext(
+  'buildRecruitmentFlexMessage(' + JSON.stringify(application) + ', ' + JSON.stringify({
+    originalContentUrl: 'https://example.com/original.jpg',
+    previewImageUrl: 'https://example.com/preview.jpg'
+  }) + ')',
   context
 );
 
 assert.equal(altText, '求人応募｜Poker Room Arkadia 船橋店');
-assert.equal(JSON.stringify(imageMessage), JSON.stringify({
-  type: 'image',
-  originalContentUrl: 'https://example.com/original.jpg',
-  previewImageUrl: 'https://example.com/preview.jpg'
-}));
 assert.equal(vm.runInContext("calculateAge('2000-04-22', new Date(2026, 10, 27))", context), 26);
 assert.equal(vm.runInContext("formatTimeJa('24:00')", context), '24時00分');
 const timeOptions = vm.runInContext('createTimeOptions(12 * 60, 24 * 60)', context);
@@ -129,9 +126,11 @@ assert.equal(payload.body.contents.some((item) => item.contents?.some((child) =>
 assert.equal(payload.body.contents.some((item) => item.contents?.some((child) => child.text === '12月03日（木）18時00分から19時00分までの間')), true);
 assert.equal(payload.footer.contents[0].text, '応募者から送信されたフォーム内容です。');
 assert.equal(JSON.stringify(payload).includes('email'), false);
+assert.equal(payloadWithPhoto.hero.type, 'image');
+assert.equal(payloadWithPhoto.hero.url, 'https://example.com/preview.jpg');
+assert.equal(payloadWithPhoto.hero.action.uri, 'https://example.com/original.jpg');
 assert.equal(JSON.stringify([
-  imageMessage,
-  { type: 'flex', altText, contents: payload }
-].map((message) => message.type)), JSON.stringify(['image', 'flex']));
+  { type: 'flex', altText, contents: payloadWithPhoto }
+].map((message) => message.type)), JSON.stringify(['flex']));
 
-console.log('PASS: 店舗名入りFlex通知文、画像→Flexの送信順、日付範囲、30分刻み時刻、終日表示を確認');
+console.log('PASS: 店舗名入りFlex通知文、Flex内画像、1通送信、日付範囲、30分刻み時刻、終日表示を確認');

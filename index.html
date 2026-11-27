@@ -805,17 +805,6 @@
       return `求人応募｜${getStoreDisplayName(data.preferredStore)}`;
     }
 
-    function buildApplicationImageMessage(photoMedia) {
-      if (!photoMedia?.originalContentUrl || !photoMedia?.previewImageUrl) {
-        throw new Error('顔写真をLINEへ送るための画像URLを取得できませんでした。もう一度お試しください。');
-      }
-      return {
-        type: 'image',
-        originalContentUrl: photoMedia.originalContentUrl,
-        previewImageUrl: photoMedia.previewImageUrl
-      };
-    }
-
     function getPhotoMedia(submissionId) {
       if (PREVIEW_MODE) return Promise.resolve(null);
       return new Promise((resolve, reject) => {
@@ -1211,7 +1200,7 @@
       };
     }
 
-    function buildRecruitmentFlexMessage(data) {
+    function buildRecruitmentFlexMessage(data, photoMedia = null) {
       const name = `${data.lastName} ${data.firstName}`;
       const kana = `${data.lastNameKana} ${data.firstNameKana}`;
       const birthDate = data.birthDate ? data.birthDate.replaceAll('-', '/') : '未入力';
@@ -1224,9 +1213,26 @@
         flexText(slot.label, slot.display, index === 0 ? 'md' : 'sm')
       ]);
 
+      const photoHero = photoMedia?.previewImageUrl ? {
+        type: 'image',
+        url: photoMedia.previewImageUrl,
+        aspectRatio: '3:4',
+        aspectMode: 'fit',
+        backgroundColor: '#F3F4F6',
+        size: 'full',
+        ...(photoMedia.originalContentUrl ? {
+          action: {
+            type: 'uri',
+            label: '顔写真を表示する',
+            uri: photoMedia.originalContentUrl
+          }
+        } : {})
+      } : null;
+
       return {
         type: 'bubble',
         size: 'giga',
+        ...(photoHero ? { hero: photoHero } : {}),
         header: {
           type: 'box',
           layout: 'vertical',
@@ -1403,13 +1409,6 @@
       try {
         applicationData.submissionId = applicationData.submissionId || createSubmissionId();
         const photo = await buildPhotoPayload();
-        lastFlexPayload = buildRecruitmentFlexMessage(applicationData);
-        const flexMessage = {
-          type: 'flex',
-          altText: buildApplicationAltText(applicationData),
-          contents: lastFlexPayload
-        };
-        const messages = [flexMessage];
 
         if (!PREVIEW_MODE && !liffReady) {
           throw new Error('応募を確定するには、公式LINEの1対1トークからこのフォームを開いてください。');
@@ -1424,11 +1423,21 @@
           lineProfile
         });
 
+        let photoMedia = null;
+        if (!PREVIEW_MODE && photo) {
+          // Driveへ保存したあと、LINEが取得できる表示用URLをFlexへ組み込む。
+          photoMedia = await getPhotoMedia(applicationData.submissionId);
+        }
+
+        lastFlexPayload = buildRecruitmentFlexMessage(applicationData, photoMedia);
+        const messages = [{
+          type: 'flex',
+          altText: buildApplicationAltText(applicationData),
+          contents: lastFlexPayload
+        }];
+
         if (!PREVIEW_MODE) {
-          // 顔写真があれば先に画像として送り、その後に応募内容のFlex Messageを送る。
-          if (photo) {
-            messages.unshift(buildApplicationImageMessage(await getPhotoMedia(applicationData.submissionId)));
-          }
+          // 顔写真があればFlex Messageのhero画像として表示し、Flexを1通だけ送る。
           await liff.sendMessages(messages);
           lineMessagesSent = true;
           try {
@@ -1446,7 +1455,7 @@
         messageSent = true;
         clearDraft();
         if (PREVIEW_MODE) {
-          document.getElementById('completeText').innerHTML = 'プレビュー用にFlex MessageのJSONを生成しました。<br>本番では顔写真があれば画像メッセージを先に送り、その後に応募内容のFlex Messageを送信します。';
+          document.getElementById('completeText').innerHTML = 'プレビュー用にFlex MessageのJSONを生成しました。<br>本番では顔写真があればFlex Message内の上部に表示し、Flexを1通だけ送信します。';
           document.getElementById('previewPayload').hidden = false;
           document.getElementById('previewPayload').textContent = JSON.stringify({ messages }, null, 2);
         } else if (sheetStatusUpdateFailed) {
@@ -1498,7 +1507,6 @@
     // テストから参照できるよう、純粋な生成関数だけを公開する。
     window.buildRecruitmentFlexMessage = buildRecruitmentFlexMessage;
     window.buildApplicationAltText = buildApplicationAltText;
-    window.buildApplicationImageMessage = buildApplicationImageMessage;
     window.calculateAge = calculateAge;
     window.formatDateJa = formatDateJa;
   </script>

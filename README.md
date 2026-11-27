@@ -6,12 +6,9 @@
 
 GitHubリポジトリ：https://github.com/Ryooona/arkadia-recruitment
 
-応募者が送信すると、次の順番で同じ公式LINEトークへ届きます。
-
-1. 顔写真を添付した場合のみ、顔写真の画像メッセージ
-2. 応募内容をまとめたFlex Message：`求人応募｜店舗名 〇〇店`
-
-この順番は `liff.sendMessages([画像メッセージ, Flex Message])` で固定しています。
+応募者が送信すると、応募内容をまとめたFlex Messageが1通だけ同じ公式LINEトークへ届きます。
+顔写真を添付した場合は、Flex Messageの上部に写真を表示します。通知・トーク一覧の表示は
+`求人応募｜店舗名 〇〇店` です。
 
 ## フォーム項目
 
@@ -48,7 +45,7 @@ https://docs.google.com/spreadsheets/d/1xQZ7iRbG5bT_onZ-IRDLR8cTvg_AYLWq6supT_0U
 
 `応募者一覧` タブに、フォーム項目、面接希望3枠、LINEユーザー情報、顔写真のDriveリンク、LINE送信状態を記録します。メールアドレス列はありません。
 
-バックエンド本体は [`backend/Code.gs`](backend/Code.gs) です。Apps Scriptとしてデプロイし、作成されたウェブアプリURLを `index.html` の `BACKEND_URL` に設定してください。顔写真は非公開のDriveフォルダへ保存されます。
+バックエンド本体は [`backend/Code.gs`](backend/Code.gs) です。Apps Scriptとしてデプロイし、作成されたウェブアプリURLを `index.html` の `BACKEND_URL` に設定してください。顔写真の原本はDriveへ保存し、LINE表示用URLをFlexへ組み込みます。
 
 ## 本番設定
 
@@ -70,4 +67,4 @@ https://docs.google.com/spreadsheets/d/1xQZ7iRbG5bT_onZ-IRDLR8cTvg_AYLWq6supT_0U
 
 時刻候補は現在 `00:00〜23:45` です。面接対応時間を限定する場合は、`index.html` の `INTERVIEW_TIME_START_MINUTES` と `INTERVIEW_TIME_END_MINUTES` を変更します。
 
-顔写真をLINEの画像メッセージとして届けるため、保存した顔写真はリンクを知っているユーザーが閲覧できるGoogle Driveリンクとして扱います。公式LINEの1対1トーク以外のブラウザから開いた場合、同じトークへ自動送信できません。本番では公式LINE内から開く導線に限定してください。
+顔写真をFlex内に表示するため、保存した顔写真はリンクを知っているユーザーが閲覧できるGoogle Driveリンクとして扱います。公式LINEの1対1トーク以外のブラウザから開いた場合、同じトークへ自動送信できません。本番では公式LINE内から開く導線に限定してください。
