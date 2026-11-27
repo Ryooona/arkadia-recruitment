@@ -8,10 +8,10 @@ GitHubリポジトリ：https://github.com/Ryooona/arkadia-recruitment
 
 応募者が送信すると、次の順番で同じ公式LINEトークへ届きます。
 
-1. 通知音を鳴らすための通常テキスト：`求人を応募しました｜〇〇店`
-2. 応募内容をまとめたFlex Message
+1. 応募内容をまとめたFlex Message：`求人応募｜店舗名 〇〇店`
+2. 顔写真を添付した場合のみ、顔写真の画像メッセージ
 
-この順番は `liff.sendMessages([通知テキスト, Flex Message])` で固定しています。
+この順番は `liff.sendMessages([Flex Message, 画像メッセージ])` で固定しています。
 
 ## フォーム項目
 
@@ -26,7 +26,7 @@ GitHubリポジトリ：https://github.com/Ryooona/arkadia-recruitment
 - 面接希望日時（第1〜第3希望）
   - 日付
   - 終日可能チェック
-  - 終日可能でない場合は開始・終了時刻（15分単位）
+  - 終日可能でない場合は開始・終了時刻（30分単位）
 - その他・備考
 
 メールアドレスとプライバシーポリシー同意欄は、今回のLINE応募フォームには含めていません。
@@ -65,9 +65,9 @@ https://docs.google.com/spreadsheets/d/1xQZ7iRbG5bT_onZ-IRDLR8cTvg_AYLWq6supT_0U
 
 ## プレビューとテスト
 
-- `?preview=1`：LINE送信とスプレッドシート送信を行わず、通知テキスト→Flex MessageのJSONを確認
-- `verify-line-message.cjs`：通知テキストがFlex Messageより先に並ぶこと、年齢、終日可能、15分刻み表示を検証
+- `?preview=1`：LINE送信とスプレッドシート送信を行わず、Flex MessageのJSONを確認
+- `verify-line-message.cjs`：店舗名入りaltText、Flex Message、年齢、終日可能、30分刻み表示を検証
 
 時刻候補は現在 `00:00〜23:45` です。面接対応時間を限定する場合は、`index.html` の `INTERVIEW_TIME_START_MINUTES` と `INTERVIEW_TIME_END_MINUTES` を変更します。
 
-公式LINEの1対1トーク以外のブラウザから開いた場合、同じトークへ自動送信できません。本番では公式LINE内から開く導線に限定してください。
+顔写真をLINEの画像メッセージとして届けるため、保存した顔写真はリンクを知っているユーザーが閲覧できるGoogle Driveリンクとして扱います。公式LINEの1対1トーク以外のブラウザから開いた場合、同じトークへ自動送信できません。本番では公式LINE内から開く導線に限定してください。

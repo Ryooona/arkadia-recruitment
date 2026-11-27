@@ -35,6 +35,7 @@ const context = vm.createContext({
   console,
   setTimeout,
   clearTimeout,
+  navigator: { userAgent: 'node' },
   window: {
     scrollTo() {},
     addEventListener() {},
@@ -93,13 +94,21 @@ const payload = vm.runInContext(
   'buildRecruitmentFlexMessage(' + JSON.stringify(application) + ')',
   context
 );
-const notice = vm.runInContext(
-  'buildApplicationNoticeMessage(' + JSON.stringify(application) + ')',
+const altText = vm.runInContext(
+  'buildApplicationAltText(' + JSON.stringify(application) + ')',
+  context
+);
+const imageMessage = vm.runInContext(
+  'buildApplicationImageMessage({ originalContentUrl: "https://example.com/original.jpg", previewImageUrl: "https://example.com/preview.jpg" })',
   context
 );
 
-assert.equal(notice.type, 'text');
-assert.equal(notice.text, '求人を応募しました｜船橋店');
+assert.equal(altText, '求人応募｜Poker Room Arkadia 船橋店');
+assert.equal(JSON.stringify(imageMessage), JSON.stringify({
+  type: 'image',
+  originalContentUrl: 'https://example.com/original.jpg',
+  previewImageUrl: 'https://example.com/preview.jpg'
+}));
 assert.equal(vm.runInContext("calculateAge('2000-04-22', new Date(2026, 10, 27))", context), 26);
 assert.equal(vm.runInContext("formatTimeJa('24:00')", context), '24時00分');
 const timeOptions = vm.runInContext('createTimeOptions(12 * 60, 24 * 60)', context);
@@ -112,7 +121,7 @@ assert.equal((dateOptions.match(/<option/g) || []).length, 32);
 assert.equal(payload.type, 'bubble');
 assert.equal(payload.size, 'giga');
 assert.equal(payload.header.contents[0].text, '求人応募');
-assert.equal(payload.header.contents[1].text, '船橋店 希望');
+assert.equal(payload.header.contents[1].text, 'Poker Room Arkadia 船橋店');
 assert.equal(payload.body.contents.some((item) => item.contents?.some((child) => child.text === '希望勤務店舗')), true);
 assert.equal(payload.body.contents.some((item) => item.contents?.some((child) => child.text === '年齢')), true);
 assert.equal(payload.body.contents.some((item) => item.contents?.some((child) => child.text === '添付あり：face.jpg')), true);
@@ -120,7 +129,9 @@ assert.equal(payload.body.contents.some((item) => item.contents?.some((child) =>
 assert.equal(payload.body.contents.some((item) => item.contents?.some((child) => child.text === '12月03日（木）18時00分から19時00分までの間')), true);
 assert.equal(payload.footer.contents[0].text, '応募者から送信されたフォーム内容です。');
 assert.equal(JSON.stringify(payload).includes('email'), false);
-assert.equal([notice, { type: 'flex', altText: '求人応募（船橋店希望）', contents: payload }][0].type, 'text');
-assert.equal([notice, { type: 'flex', altText: '求人応募（船橋店希望）', contents: payload }][1].type, 'flex');
+assert.equal(JSON.stringify([
+  { type: 'flex', altText, contents: payload },
+  imageMessage
+].map((message) => message.type)), JSON.stringify(['flex', 'image']));
 
-console.log('PASS: 通知テキストをFlex Messageより先に送る順序、日付範囲、30分刻み時刻、終日表示を確認');
+console.log('PASS: 店舗名入りFlex通知文、Flex→画像の送信順、日付範囲、30分刻み時刻、終日表示を確認');

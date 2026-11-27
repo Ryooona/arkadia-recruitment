@@ -425,7 +425,7 @@
       <h1>Arkadia求人窓口<br>求人応募フォーム</h1>
       <p class="description">
         必要事項と面接の希望日時をご入力ください。<br>
-        送信すると、まず「求人を応募しました｜希望店舗」の通知テキスト、続けて入力内容のFlex Messageが「Arkadia求人窓口（@158zkwys）」のトークへ届きます。
+        送信すると、入力内容のFlex Messageが「Arkadia求人窓口（@158zkwys）」のトークへ届きます。顔写真を添付した場合は、Flex Messageの後に画像メッセージとして届きます。
       </p>
       <div id="draftNotice" class="message-box">
         入力途中の内容は、この端末に24時間一時保存されます。応募送信が完了すると削除されます。<br>
@@ -526,7 +526,7 @@
 
         <div class="field">
           <label for="photo">顔写真<span class="optional">任意</span></label>
-          <input id="photo" type="file" accept="image/*">
+          <input id="photo" type="file" accept="image/jpeg,image/png">
           <p class="file-note">本人確認・選考の参考として使用します。画像ファイルのみ、5MB以内でアップロードできます。</p>
         </div>
 
@@ -639,7 +639,6 @@
     let submissionInProgress = false;
     let messageSent = false;
     let applicationData = null;
-    let lastTextPayload = null;
     let lastFlexPayload = null;
     let draftSaveTimer = null;
     let formDirty = false;
@@ -741,8 +740,8 @@
     function validatePhoto() {
       const photo = getSelectedPhoto();
       if (!photo) return '';
-      if (!photo.type || !photo.type.startsWith('image/')) {
-        return '顔写真は画像ファイルを選択してください。';
+      if (!['image/jpeg', 'image/png'].includes(photo.type)) {
+        return '顔写真はJPEGまたはPNGの画像ファイルを選択してください。';
       }
       if (photo.size > MAX_PHOTO_BYTES) {
         return '顔写真は5MB以内で選択してください。';
@@ -791,6 +790,63 @@
         body: JSON.stringify({ ...payload, sharedSecret: BACKEND_SHARED_SECRET })
       });
       return { ok: true, opaque: response.type === 'opaque' };
+    }
+
+    function getStoreDisplayName(store) {
+      const storeDisplayNames = {
+        '船橋店': 'Poker Room Arkadia 船橋店',
+        '岐阜店': 'Poker Room Arkadia 岐阜店',
+        '新潟店': 'Poker Room Arkadia 新潟店'
+      };
+      return storeDisplayNames[store] || store;
+    }
+
+    function buildApplicationAltText(data) {
+      return `求人応募｜${getStoreDisplayName(data.preferredStore)}`;
+    }
+
+    function buildApplicationImageMessage(photoMedia) {
+      if (!photoMedia?.originalContentUrl || !photoMedia?.previewImageUrl) {
+        throw new Error('顔写真をLINEへ送るための画像URLを取得できませんでした。もう一度お試しください。');
+      }
+      return {
+        type: 'image',
+        originalContentUrl: photoMedia.originalContentUrl,
+        previewImageUrl: photoMedia.previewImageUrl
+      };
+    }
+
+    function getPhotoMedia(submissionId) {
+      if (PREVIEW_MODE) return Promise.resolve(null);
+      return new Promise((resolve, reject) => {
+        const callbackName = `arkadiaPhotoMedia_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        const script = document.createElement('script');
+        const timeoutId = window.setTimeout(() => {
+          cleanup();
+          reject(new Error('顔写真のLINE送信用URLの取得がタイムアウトしました。'));
+        }, 15000);
+
+        function cleanup() {
+          window.clearTimeout(timeoutId);
+          delete window[callbackName];
+          script.remove();
+        }
+
+        window[callbackName] = (payload) => {
+          cleanup();
+          if (!payload?.ok) {
+            reject(new Error(payload?.error || '顔写真のLINE送信用URLを取得できませんでした。'));
+            return;
+          }
+          resolve(payload.photo || null);
+        };
+        script.onerror = () => {
+          cleanup();
+          reject(new Error('顔写真のLINE送信用URLを取得できませんでした。'));
+        };
+        script.src = `${BACKEND_URL}?action=photo_media&submissionId=${encodeURIComponent(submissionId)}&callback=${encodeURIComponent(callbackName)}`;
+        document.head.appendChild(script);
+      });
     }
 
     function getDraftState() {
@@ -1178,7 +1234,7 @@
           backgroundColor: '#06C755',
           contents: [
             { type: 'text', text: '求人応募', color: '#FFFFFF', size: 'xl', weight: 'bold' },
-            { type: 'text', text: `${data.preferredStore} 希望`, color: '#FFFFFF', size: 'sm', margin: 'sm' }
+            { type: 'text', text: getStoreDisplayName(data.preferredStore), color: '#FFFFFF', size: 'sm', margin: 'sm' }
           ]
         },
         body: {
@@ -1212,14 +1268,6 @@
             { type: 'text', text: '応募者から送信されたフォーム内容です。', size: 'xs', color: '#6B7280', wrap: true }
           ]
         }
-      };
-    }
-
-    // 通知音を鳴らす目的の通常テキスト。Flex Messageより必ず先に送る。
-    function buildApplicationNoticeMessage(data) {
-      return {
-        type: 'text',
-        text: `求人を応募しました｜${data.preferredStore}`
       };
     }
 
@@ -1355,13 +1403,11 @@
       try {
         applicationData.submissionId = applicationData.submissionId || createSubmissionId();
         const photo = await buildPhotoPayload();
-        lastTextPayload = buildApplicationNoticeMessage(applicationData);
         lastFlexPayload = buildRecruitmentFlexMessage(applicationData);
         const messages = [
-          lastTextPayload,
           {
             type: 'flex',
-            altText: `求人応募（${applicationData.preferredStore}希望）`,
+            altText: buildApplicationAltText(applicationData),
             contents: lastFlexPayload
           }
         ];
@@ -1380,13 +1426,17 @@
         });
 
         if (!PREVIEW_MODE) {
-          // 配列順が通知テキスト → Flex Messageとなることを固定する。
+          // 応募内容のFlex Messageを先に送り、顔写真があれば直後に画像として送る。
+          if (photo) {
+            messages.push(buildApplicationImageMessage(await getPhotoMedia(applicationData.submissionId)));
+          }
           await liff.sendMessages(messages);
           lineMessagesSent = true;
           try {
             await postToBackend({
               action: 'mark_line_sent',
-              submissionId: applicationData.submissionId
+              submissionId: applicationData.submissionId,
+              hasPhoto: Boolean(photo)
             });
           } catch (statusError) {
             console.warn('送信済み状態の更新に失敗しました', statusError);
@@ -1397,11 +1447,11 @@
         messageSent = true;
         clearDraft();
         if (PREVIEW_MODE) {
-          document.getElementById('completeText').innerHTML = 'プレビュー用に通知テキスト＋Flex MessageのJSONを生成しました。<br>本番ではこの順番で公式LINEのトークへ送信されます。';
+          document.getElementById('completeText').innerHTML = 'プレビュー用にFlex MessageのJSONを生成しました。<br>本番では応募内容のFlex Messageを送信し、顔写真があれば続けて画像メッセージを送信します。';
           document.getElementById('previewPayload').hidden = false;
           document.getElementById('previewPayload').textContent = JSON.stringify({ messages }, null, 2);
         } else if (sheetStatusUpdateFailed) {
-          document.getElementById('completeText').innerHTML = '公式LINEへの通知テキストとFlex Messageは送信されました。<br>ただし、スプレッドシートの送信済み状態の更新に失敗したため、管理画面で記録をご確認ください。';
+          document.getElementById('completeText').innerHTML = '公式LINEへのFlex Messageは送信されました。<br>ただし、スプレッドシートの送信済み状態の更新に失敗したため、管理画面で記録をご確認ください。';
         }
         showScreen(completeScreen);
       } catch (error) {
@@ -1409,7 +1459,7 @@
         if (lineMessagesSent) {
           messageSent = true;
           clearDraft();
-          document.getElementById('completeText').innerHTML = '公式LINEへの通知テキストとFlex Messageは送信されました。<br>スプレッドシートの送信済み状態の更新だけ確認できませんでした。';
+          document.getElementById('completeText').innerHTML = '公式LINEへのFlex Messageは送信されました。<br>スプレッドシートの送信済み状態の更新だけ確認できませんでした。';
           showScreen(completeScreen);
         } else {
           showError(confirmError, error.message || '応募内容の記録またはFlex Messageの送信に失敗しました。公式LINEのトークから開いているか、接続先設定をご確認ください。');
@@ -1447,8 +1497,9 @@
     initializeLiff();
 
     // テストから参照できるよう、純粋な生成関数だけを公開する。
-    window.buildApplicationNoticeMessage = buildApplicationNoticeMessage;
     window.buildRecruitmentFlexMessage = buildRecruitmentFlexMessage;
+    window.buildApplicationAltText = buildApplicationAltText;
+    window.buildApplicationImageMessage = buildApplicationImageMessage;
     window.calculateAge = calculateAge;
     window.formatDateJa = formatDateJa;
   </script>

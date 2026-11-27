@@ -4,7 +4,7 @@
  * 役割：
  * 1) LIFFから受け取った応募内容をGoogleスプレッドシートへ追記
  * 2) 任意の顔写真をGoogle Driveへ保存し、保存先リンクをシートへ記録
- * 3) LINEの2通送信（通知テキスト→Flex）後に送信済み状態を更新
+ * 3) LINEのFlex Message（顔写真があれば続けて画像）送信後に送信済み状態を更新
  */
 
 const CONFIG = {
@@ -21,10 +21,15 @@ const HEADERS = [
   '生年月日', '年齢', '性別（ジェンダー）', 'ポーカーディーラーのご経験', 'ディーラー歴',
   '所属店舗', 'ディーラーネーム', '電話番号', '顔写真ファイル名', '顔写真URL',
   'アピールポイント', '第1希望', '第2希望', '第3希望', 'その他・備考', 'LINE表示名',
-  'LINEユーザーID', 'LINE通知テキスト送信', 'LINE Flex送信', '処理状況', 'メモ'
+  'LINEユーザーID', 'LINE Flex送信', 'LINE画像送信', '処理状況', 'メモ'
 ];
 
-function doGet() {
+function doGet(e) {
+  const params = e?.parameter || {};
+  if (params.action === 'photo_media') {
+    const payload = getPhotoMedia(params.submissionId);
+    return jsonpResponse(params.callback, payload);
+  }
   return jsonResponse({ ok: true, service: 'Arkadia求人応募受付', sheet: CONFIG.SHEET_NAME });
 }
 
@@ -63,6 +68,7 @@ function appendApplication(body) {
   if (!application.preferredStore) throw new Error('希望勤務店舗がありません。');
 
   const sheet = getSheet();
+  ensureStatusHeaders(sheet);
   const existingRow = findRowBySubmissionId(sheet, submissionId);
   if (existingRow > 0) {
     return jsonResponse({ ok: true, duplicate: true, submissionId });
@@ -113,11 +119,13 @@ function markLineSent(body) {
   if (!submissionId) throw new Error('応募IDがありません。');
 
   const sheet = getSheet();
+  ensureStatusHeaders(sheet);
   const rowNumber = findRowBySubmissionId(sheet, submissionId);
   if (rowNumber < 2) throw new Error('応募IDに一致する記録が見つかりません。');
 
-  // Y列：LINE通知テキスト、Z列：LINE Flex、AA列：処理状況
-  sheet.getRange(rowNumber, 25, 1, 3).setValues([['送信済み', '送信済み', '受付済み']]);
+  // Y列：LINE Flex、Z列：LINE画像、AA列：処理状況
+  const imageStatus = body.hasPhoto ? '送信済み' : '対象なし';
+  sheet.getRange(rowNumber, 25, 1, 3).setValues([['送信済み', imageStatus, '受付済み']]);
   return jsonResponse({ ok: true, submissionId, lineSent: true });
 }
 
@@ -127,6 +135,10 @@ function findRowBySubmissionId(sheet, submissionId) {
   const ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues().flat();
   const index = ids.findIndex((value) => String(value) === submissionId);
   return index === -1 ? 0 : index + 2;
+}
+
+function ensureStatusHeaders(sheet) {
+  sheet.getRange(1, 25, 1, 4).setValues([['LINE Flex送信', 'LINE画像送信', '処理状況', 'メモ']]);
 }
 
 function formatSlot(slot) {
@@ -143,13 +155,48 @@ function savePhoto(photo, submissionId) {
   const mimeType = String(photo.mimeType || 'image/jpeg');
   const base64 = String(photo.base64);
   const sizeBytes = Math.ceil(base64.length * 3 / 4);
-  if (!mimeType.startsWith('image/')) throw new Error('顔写真は画像ファイルを選択してください。');
+  if (!['image/jpeg', 'image/png'].includes(mimeType)) throw new Error('顔写真はJPEGまたはPNGの画像ファイルを選択してください。');
   if (sizeBytes > CONFIG.MAX_PHOTO_BYTES) throw new Error('顔写真は5MB以内で選択してください。');
 
   const folder = getPhotoFolder();
   const blob = Utilities.newBlob(Utilities.base64Decode(base64), mimeType, `${submissionId}_${fileName}`);
   const file = folder.createFile(blob);
+  // LINEの画像メッセージから取得できるよう、リンクを知っているユーザーに閲覧を許可する。
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   return { fileName, url: file.getUrl() };
+}
+
+function getPhotoMedia(submissionId) {
+  const id = String(submissionId || '').trim();
+  if (!id) return { ok: false, error: '応募IDがありません。' };
+
+  const sheet = getSheet();
+  const rowNumber = findRowBySubmissionId(sheet, id);
+  if (rowNumber < 2) return { ok: false, error: '応募IDに一致する記録が見つかりません。' };
+
+  const storedUrl = String(sheet.getRange(rowNumber, 17).getValue() || '').trim();
+  if (!storedUrl) return { ok: true, photo: null };
+
+  const fileId = extractDriveFileId(storedUrl);
+  if (!fileId) return { ok: false, error: '顔写真の保存先を確認できませんでした。' };
+
+  const file = DriveApp.getFileById(fileId);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return {
+    ok: true,
+    photo: {
+      originalContentUrl: `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`,
+      previewImageUrl: `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w800`
+    }
+  };
+}
+
+function extractDriveFileId(url) {
+  const value = String(url || '');
+  const queryMatch = value.match(/[?&]id=([^&]+)/);
+  if (queryMatch) return decodeURIComponent(queryMatch[1]);
+  const pathMatch = value.match(/\/d\/([^/]+)/);
+  return pathMatch ? pathMatch[1] : '';
 }
 
 function getPhotoFolder() {
@@ -173,4 +220,15 @@ function jsonResponse(payload) {
   return ContentService
     .createTextOutput(JSON.stringify(payload))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function jsonpResponse(callback, payload) {
+  const callbackName = String(callback || '');
+  if (!/^[A-Za-z_$][0-9A-Za-z_$]*$/.test(callbackName)) {
+    return jsonResponse({ ok: false, error: 'コールバック名が不正です。' });
+  }
+  const json = JSON.stringify(payload).replace(/</g, '\\u003c');
+  return ContentService
+    .createTextOutput(`${callbackName}(${json});`)
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
 }
