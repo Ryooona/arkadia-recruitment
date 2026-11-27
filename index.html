@@ -1,0 +1,1245 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <title>Arkadia求人窓口 求人応募</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    :root {
+      --green: #06c755;
+      --green-dark: #05a947;
+      --green-disabled: #8ce4af;
+      --ink: #202124;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --background: #f6f7f8;
+      --error: #dc2626;
+      --white: #fff;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--background);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 620px;
+      margin: 0 auto;
+      padding: 24px 18px 48px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 24px;
+      line-height: 1.45;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.5;
+    }
+
+    .description {
+      margin: 0 0 28px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .section-title {
+      margin: 34px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--green);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .field { margin-bottom: 22px; }
+
+    label, legend {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    fieldset {
+      margin: 0 0 22px;
+      padding: 0;
+      border: 0;
+    }
+
+    .required {
+      margin-left: 6px;
+      color: var(--error);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .optional {
+      margin-left: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    input, select, textarea {
+      display: block;
+      width: 100%;
+      min-height: 48px;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      color: var(--ink);
+      font: inherit;
+      font-size: 16px;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 2px rgba(6, 199, 85, .14);
+    }
+
+    .derived-field {
+      margin: -8px 0 22px;
+    }
+
+    .derived-label {
+      margin-bottom: 8px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .derived-value {
+      display: flex;
+      align-items: center;
+      min-height: 48px;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f3f4f6;
+      color: var(--ink);
+      font-size: 16px;
+    }
+
+    .file-note {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    textarea {
+      min-height: 118px;
+      resize: vertical;
+      line-height: 1.65;
+    }
+
+    .radio-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .radio-option, .check-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      margin: 0;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    .radio-option input, .check-option input {
+      width: 18px;
+      min-height: 18px;
+      margin: 0;
+      accent-color: var(--green);
+    }
+
+    .helper {
+      margin: -2px 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .interview-card {
+      margin-bottom: 16px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--white);
+    }
+
+    .interview-card-title {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .interview-input-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 145px) minmax(0, 1fr) minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+    }
+
+    .interview-input-row .check-option {
+      min-width: 0;
+      white-space: nowrap;
+    }
+
+    .time-controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      gap: 6px;
+      align-items: center;
+    }
+
+    .time-controls .separator {
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .time-controls[hidden] { display: none; }
+
+    .all-day-note {
+      display: none;
+      align-items: center;
+      min-height: 48px;
+      padding: 11px 12px;
+      border: 1px dashed var(--green);
+      border-radius: 8px;
+      background: #effdf4;
+      color: #166534;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .all-day-note.visible { display: flex; }
+
+    .button {
+      display: block;
+      width: 100%;
+      min-height: 52px;
+      padding: 13px 16px;
+      border: 0;
+      border-radius: 8px;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .button.primary { background: var(--green); color: #fff; }
+    .button.primary:hover { background: var(--green-dark); }
+    .button.primary:disabled { background: var(--green-disabled); cursor: default; }
+    .button.secondary { background: var(--white); color: var(--ink); border: 1px solid var(--line); }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .confirmation-card {
+      overflow: hidden;
+      margin-top: 24px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--white);
+    }
+
+    .confirmation-item {
+      padding: 14px 16px;
+      border-bottom: 1px solid #eceef1;
+    }
+
+    .confirmation-item:last-child { border-bottom: 0; }
+
+    .confirmation-label {
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .confirmation-value {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    .message-box {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .error-message {
+      display: none;
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 8px;
+      background: #fef2f2;
+      color: var(--error);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .error-message.show { display: block; }
+
+    .complete-box {
+      margin-top: 50px;
+      padding: 30px 22px;
+      border-radius: 12px;
+      background: var(--white);
+      text-align: center;
+    }
+
+    .complete-icon {
+      margin-bottom: 16px;
+      color: var(--green);
+      font-size: 48px;
+      line-height: 1;
+    }
+
+    .complete-title {
+      margin-bottom: 16px;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .complete-text {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .preview-payload {
+      overflow: auto;
+      margin-top: 20px;
+      padding: 12px;
+      background: #111827;
+      color: #e5e7eb;
+      text-align: left;
+      font-size: 11px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .close-button { margin-top: 24px; }
+
+    [hidden] { display: none !important; }
+
+    @media (max-width: 520px) {
+      .interview-input-row {
+        grid-template-columns: 1fr;
+      }
+
+      .interview-input-row .check-option {
+        width: fit-content;
+      }
+
+      .button-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section id="inputScreen" class="screen active">
+      <h1>Arkadia求人窓口<br>求人応募フォーム</h1>
+      <p class="description">
+        必要事項と面接の希望日時をご入力ください。<br>
+        送信すると、まず「求人を応募しました｜希望店舗」の通知テキスト、続けて入力内容のFlex Messageが「Arkadia求人窓口（@158zkwys）」のトークへ届きます。
+      </p>
+      <div id="draftNotice" class="message-box">
+        入力途中の内容は、この端末に24時間一時保存されます。応募送信が完了すると削除されます。<br>
+        顔写真は安全のため一時保存されないため、ページを再表示した場合は再選択してください。
+      </div>
+
+      <form id="applicationForm" novalidate>
+        <div class="section-title">基本情報</div>
+
+        <div class="field">
+          <label for="preferredStore">希望の勤務店舗<span class="required">必須</span></label>
+          <select id="preferredStore" required>
+            <option value="">選択してください</option>
+            <option value="船橋店">船橋店</option>
+            <option value="岐阜店">岐阜店</option>
+            <option value="新潟店">新潟店</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="lastName">姓<span class="required">必須</span></label>
+          <input id="lastName" type="text" autocomplete="family-name" required>
+        </div>
+
+        <div class="field">
+          <label for="firstName">名<span class="required">必須</span></label>
+          <input id="firstName" type="text" autocomplete="given-name" required>
+        </div>
+
+        <div class="field">
+          <label for="lastNameKana">姓（かな）<span class="required">必須</span></label>
+          <input id="lastNameKana" type="text" inputmode="kana" required>
+        </div>
+
+        <div class="field">
+          <label for="firstNameKana">名（かな）<span class="required">必須</span></label>
+          <input id="firstNameKana" type="text" inputmode="kana" required>
+        </div>
+
+        <div class="field">
+          <label for="birthDate">生年月日<span class="required">必須</span></label>
+          <input id="birthDate" type="date" autocomplete="bday" required>
+        </div>
+
+        <div class="derived-field">
+          <div class="derived-label">年齢</div>
+          <div id="ageDisplay" class="derived-value" aria-live="polite">生年月日を入力すると自動表示されます</div>
+        </div>
+
+        <fieldset>
+          <legend>性別（ジェンダー）<span class="required">必須</span></legend>
+          <div class="radio-group">
+            <label class="radio-option"><input type="radio" name="gender" value="男性" required>男性</label>
+            <label class="radio-option"><input type="radio" name="gender" value="女性">女性</label>
+            <label class="radio-option"><input type="radio" name="gender" value="その他">その他</label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>ポーカーディーラーのご経験<span class="required">必須</span></legend>
+          <p class="helper">経験がある方は、下の詳細もご入力ください。</p>
+          <div class="radio-group">
+            <label class="radio-option"><input type="radio" name="dealerExperience" value="あり" required>あり</label>
+            <label class="radio-option"><input type="radio" name="dealerExperience" value="なし">なし</label>
+          </div>
+        </fieldset>
+
+        <div id="experienceDetails" hidden>
+          <div class="field">
+            <label for="dealerHistory">ディーラー歴<span class="optional">任意</span></label>
+            <input id="dealerHistory" type="text" placeholder="例：1年3ヶ月">
+          </div>
+          <div class="field">
+            <label for="previousStore">所属店舗<span class="optional">任意</span></label>
+            <input id="previousStore" type="text" placeholder="例：Poker Room Arkadia 船橋店">
+          </div>
+          <div class="field">
+            <label for="dealerName">ディーラーネーム<span class="optional">任意</span></label>
+            <input id="dealerName" type="text" placeholder="例：aruka">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="phone">電話番号<span class="required">必須</span></label>
+          <input id="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="例：09012345678" required>
+        </div>
+
+        <div class="field">
+          <label for="photo">顔写真<span class="optional">任意</span></label>
+          <input id="photo" type="file" accept="image/*">
+          <p class="file-note">本人確認・選考の参考として使用します。画像ファイルのみ、5MB以内でアップロードできます。</p>
+        </div>
+
+        <div class="field">
+          <label for="appeal">アピールポイント<span class="required">必須</span></label>
+          <textarea id="appeal" placeholder="採用されたらやりたいこと、ご自身の強みなど、なんでもお書きください！" required></textarea>
+        </div>
+
+        <div class="section-title">面接希望日時</div>
+        <p class="helper">
+          第1〜第3希望をすべてご入力ください。時刻は15分単位で選択できます。<br>
+          「終日可能」にチェックした場合、その日の時刻選択は不要です。
+        </p>
+
+        <div id="interviewSlots"></div>
+
+        <div class="message-box">
+          ※書類審査を通過された方に、ご入力いただいた希望日時をもとに面接のご案内をいたします。<br>
+          ※面接は対面またはオンラインにて、当社指定の方法で実施します。<br>
+          ※面接調整のため、希望時間帯は余裕を持ってご入力ください。
+        </div>
+
+        <div class="field">
+          <label for="notes">その他・備考<span class="optional">任意</span></label>
+          <textarea id="notes" placeholder="勤務開始時期やご質問などがあればご入力ください"></textarea>
+        </div>
+
+        <button id="confirmButton" class="button primary" type="submit" disabled>LINE接続を確認中...</button>
+      </form>
+      <div id="inputError" class="error-message" role="alert"></div>
+    </section>
+
+    <section id="confirmScreen" class="screen">
+      <h1>応募内容の確認</h1>
+      <p class="description">内容をご確認のうえ、「公式LINEへ送信する」を押してください。</p>
+      <div id="confirmationCard" class="confirmation-card"></div>
+      <div class="message-box">送信後、入力内容を含むFlex Messageが公式LINEのトークに表示されます。</div>
+      <div class="button-row">
+        <button id="editButton" class="button secondary" type="button">修正する</button>
+        <button id="submitButton" class="button primary" type="button">公式LINEへ送信する</button>
+      </div>
+      <div id="confirmError" class="error-message" role="alert"></div>
+    </section>
+
+    <section id="completeScreen" class="screen">
+      <div class="complete-box">
+        <div class="complete-icon">✓</div>
+        <div class="complete-title">応募内容を送信しました</div>
+        <div id="completeText" class="complete-text">
+          公式LINEのトークに応募内容が届いています。<br>
+          内容を確認後、担当者よりご連絡いたします。
+        </div>
+        <pre id="previewPayload" class="preview-payload" hidden></pre>
+        <button id="closeButton" class="button primary close-button" type="button">画面を閉じる</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // 本番公開時にLINE Developersで発行したLIFF IDへ差し替える。
+    const OFFICIAL_ACCOUNT_ID = '@158zkwys';
+    const LIFF_ID = 'REPLACE_WITH_LIFF_ID';
+    // Google Apps ScriptをウェブアプリとしてデプロイしたURLへ差し替える。
+    const BACKEND_URL = 'REPLACE_WITH_APPS_SCRIPT_WEB_APP_URL';
+    // 任意。Apps Script側で設定した共有シークレットと同じ値にする。
+    const BACKEND_SHARED_SECRET = '';
+    const PREVIEW_MODE = new URLSearchParams(location.search).has('preview');
+    const INTERVIEW_TIME_START_MINUTES = 0;
+    const INTERVIEW_TIME_END_MINUTES = 23 * 60 + 45;
+    const DRAFT_STORAGE_KEY = 'arkadia_recruitment_draft_v2';
+    const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
+    const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+
+    const SLOT_DEFINITIONS = [
+      { id: 'first', label: '第1希望', required: true },
+      { id: 'second', label: '第2希望', required: true },
+      { id: 'third', label: '第3希望', required: true }
+    ];
+
+    const inputScreen = document.getElementById('inputScreen');
+    const confirmScreen = document.getElementById('confirmScreen');
+    const completeScreen = document.getElementById('completeScreen');
+    const applicationForm = document.getElementById('applicationForm');
+    const confirmButton = document.getElementById('confirmButton');
+    const submitButton = document.getElementById('submitButton');
+    const editButton = document.getElementById('editButton');
+    const closeButton = document.getElementById('closeButton');
+    const inputError = document.getElementById('inputError');
+    const confirmError = document.getElementById('confirmError');
+    const interviewSlots = document.getElementById('interviewSlots');
+    const ageDisplay = document.getElementById('ageDisplay');
+    const draftNotice = document.getElementById('draftNotice');
+
+    let liffReady = false;
+    let submissionInProgress = false;
+    let messageSent = false;
+    let applicationData = null;
+    let lastTextPayload = null;
+    let lastFlexPayload = null;
+    let draftSaveTimer = null;
+    let formDirty = false;
+    let restoringDraft = false;
+    let lineProfile = { userId: '', displayName: '' };
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function getTodayString() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function getSelectedPhoto() {
+      return document.getElementById('photo')?.files?.[0] || null;
+    }
+
+    function validatePhoto() {
+      const photo = getSelectedPhoto();
+      if (!photo) return '';
+      if (!photo.type || !photo.type.startsWith('image/')) {
+        return '顔写真は画像ファイルを選択してください。';
+      }
+      if (photo.size > MAX_PHOTO_BYTES) {
+        return '顔写真は5MB以内で選択してください。';
+      }
+      return '';
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.addEventListener('load', () => resolve(String(reader.result || '')));
+        reader.addEventListener('error', () => reject(new Error('顔写真の読み込みに失敗しました。')));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function buildPhotoPayload() {
+      const file = getSelectedPhoto();
+      if (!file) return null;
+      const dataUrl = await fileToDataUrl(file);
+      const commaIndex = dataUrl.indexOf(',');
+      return {
+        fileName: file.name,
+        mimeType: file.type || 'image/jpeg',
+        sizeBytes: file.size,
+        base64: commaIndex >= 0 ? dataUrl.slice(commaIndex + 1) : dataUrl
+      };
+    }
+
+    function createSubmissionId() {
+      const random = Math.random().toString(36).slice(2, 8).toUpperCase();
+      return `ARK-${Date.now()}-${random}`;
+    }
+
+    async function postToBackend(payload) {
+      if (PREVIEW_MODE) return { ok: true, skipped: true };
+      if (!BACKEND_URL || BACKEND_URL === 'REPLACE_WITH_APPS_SCRIPT_WEB_APP_URL') {
+        throw new Error('応募内容を記録する接続先が未設定です。Apps ScriptのウェブアプリURLを設定してください。');
+      }
+
+      // text/plainにしてプリフライトを避け、Apps Script WebアプリへJSONを送る。
+      const response = await fetch(BACKEND_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ ...payload, sharedSecret: BACKEND_SHARED_SECRET })
+      });
+      return { ok: true, opaque: response.type === 'opaque' };
+    }
+
+    function getDraftState() {
+      const fieldIds = [
+        'lastName', 'firstName', 'lastNameKana', 'firstNameKana', 'birthDate',
+        'dealerHistory', 'previousStore', 'dealerName', 'preferredStore',
+        'phone', 'appeal', 'notes'
+      ];
+      const fields = Object.fromEntries(fieldIds.map((id) => [
+        id,
+        document.getElementById(id)?.value || ''
+      ]));
+      const interviewSlots = Object.fromEntries(SLOT_DEFINITIONS.map((slot) => [slot.id, {
+        date: document.getElementById(`${slot.id}Date`)?.value || '',
+        allDay: Boolean(document.getElementById(`${slot.id}AllDay`)?.checked),
+        start: document.getElementById(`${slot.id}Start`)?.value || '',
+        end: document.getElementById(`${slot.id}End`)?.value || ''
+      }]));
+
+      return {
+        savedAt: Date.now(),
+        fields,
+        radioValues: {
+          gender: getRadioValue('gender'),
+          dealerExperience: getRadioValue('dealerExperience')
+        },
+        interviewSlots
+      };
+    }
+
+    function saveDraft() {
+      if (restoringDraft || messageSent) return;
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(getDraftState()));
+      } catch (error) {
+        console.warn('下書き保存を利用できません', error);
+      }
+    }
+
+    function queueDraftSave() {
+      if (restoringDraft || messageSent) return;
+      formDirty = true;
+      window.clearTimeout(draftSaveTimer);
+      draftSaveTimer = window.setTimeout(saveDraft, 250);
+    }
+
+    function clearDraft() {
+      try {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      } catch (error) {
+        console.warn('下書きを削除できません', error);
+      }
+      formDirty = false;
+    }
+
+    function restoreDraft() {
+      let draft;
+      try {
+        const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+        if (!raw) return false;
+        draft = JSON.parse(raw);
+      } catch (error) {
+        console.warn('下書きを復元できません', error);
+        return false;
+      }
+
+      if (!draft?.savedAt || Date.now() - draft.savedAt > DRAFT_TTL_MS) {
+        try { localStorage.removeItem(DRAFT_STORAGE_KEY); } catch (error) { console.warn(error); }
+        return false;
+      }
+
+      restoringDraft = true;
+      Object.entries(draft.fields || {}).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) element.value = value;
+      });
+
+      ['gender', 'dealerExperience'].forEach((name) => {
+        const value = draft.radioValues?.[name];
+        const radio = value
+          ? document.querySelector(`input[name="${name}"][value="${CSS.escape(value)}"]`)
+          : null;
+        if (radio) radio.checked = true;
+      });
+
+      document.getElementById('experienceDetails').hidden = getRadioValue('dealerExperience') !== 'あり';
+      SLOT_DEFINITIONS.forEach((slot) => {
+        const saved = draft.interviewSlots?.[slot.id];
+        if (!saved) return;
+        document.getElementById(`${slot.id}Date`).value = saved.date || '';
+        document.getElementById(`${slot.id}AllDay`).checked = Boolean(saved.allDay);
+        document.getElementById(`${slot.id}Start`).value = saved.start || '';
+        document.getElementById(`${slot.id}End`).value = saved.end || '';
+        updateAllDayState(slot.id);
+      });
+
+      restoringDraft = false;
+      formDirty = true;
+      draftNotice.innerHTML = '前回の入力内容を復元しました。必要に応じて修正してください。<br>顔写真を添付する場合は、もう一度選択してください。';
+      return true;
+    }
+
+    function handleBeforeUnload(event) {
+      if (!formDirty || messageSent || completeScreen.classList.contains('active')) return;
+      event.preventDefault();
+      event.returnValue = '';
+    }
+
+    function createTimeOptions(startMinutes, endMinutes) {
+      const options = ['<option value="">時刻を選択</option>'];
+      for (let minutes = startMinutes; minutes <= endMinutes; minutes += 15) {
+        const hour = String(Math.floor(minutes / 60)).padStart(2, '0');
+        const minute = String(minutes % 60).padStart(2, '0');
+        const value = `${hour}:${minute}`;
+        options.push(`<option value="${value}">${value}</option>`);
+      }
+      return options.join('');
+    }
+
+    function renderInterviewSlots() {
+      const timeOptions = createTimeOptions(INTERVIEW_TIME_START_MINUTES, INTERVIEW_TIME_END_MINUTES);
+      interviewSlots.innerHTML = SLOT_DEFINITIONS.map((slot) => `
+        <div class="interview-card" data-slot="${slot.id}">
+          <div class="interview-card-title">${slot.label}<span class="required">必須</span></div>
+          <div class="interview-input-row">
+            <label class="check-option" for="${slot.id}AllDay">
+              <input id="${slot.id}AllDay" type="checkbox">終日可能
+            </label>
+            <input id="${slot.id}Date" type="date" min="${getTodayString()}" aria-label="${slot.label}の日付" required>
+            <div id="${slot.id}TimeControls" class="time-controls">
+              <select id="${slot.id}Start" aria-label="${slot.label}の開始時刻" required>${timeOptions}</select>
+              <span class="separator">-</span>
+              <select id="${slot.id}End" aria-label="${slot.label}の終了時刻" required>${timeOptions}</select>
+            </div>
+            <div id="${slot.id}AllDayNote" class="all-day-note" aria-live="polite">終日可能</div>
+          </div>
+        </div>
+      `).join('');
+
+      SLOT_DEFINITIONS.forEach((slot) => {
+        document.getElementById(`${slot.id}AllDay`).addEventListener('change', () => {
+          updateAllDayState(slot.id);
+        });
+      });
+    }
+
+    function updateAllDayState(slotId) {
+      const checked = document.getElementById(`${slotId}AllDay`).checked;
+      const controls = document.getElementById(`${slotId}TimeControls`);
+      const note = document.getElementById(`${slotId}AllDayNote`);
+      const start = document.getElementById(`${slotId}Start`);
+      const end = document.getElementById(`${slotId}End`);
+      controls.hidden = checked;
+      note.classList.toggle('visible', checked);
+      start.disabled = checked;
+      end.disabled = checked;
+      start.required = !checked;
+      end.required = !checked;
+      if (checked) {
+        start.value = '';
+        end.value = '';
+      }
+    }
+
+    function parseDateParts(dateValue) {
+      return dateValue.split('-').map(Number);
+    }
+
+    function calculateAge(birthDateValue, today = new Date()) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDateValue)) return '';
+      const [birthYear, birthMonth, birthDay] = parseDateParts(birthDateValue);
+      const birth = new Date(birthYear, birthMonth - 1, birthDay);
+      if (Number.isNaN(birth.getTime()) || birth > today) return '';
+
+      let age = today.getFullYear() - birthYear;
+      const birthdayPassed = today.getMonth() + 1 > birthMonth
+        || (today.getMonth() + 1 === birthMonth && today.getDate() >= birthDay);
+      if (!birthdayPassed) age -= 1;
+      return age >= 0 ? age : '';
+    }
+
+    function updateAgeDisplay() {
+      const age = calculateAge(document.getElementById('birthDate').value);
+      ageDisplay.textContent = age === ''
+        ? '生年月日を入力すると自動表示されます'
+        : `満${age}歳`;
+    }
+
+    function formatDateJa(dateValue) {
+      const [year, month, day] = parseDateParts(dateValue);
+      const date = new Date(year, month - 1, day);
+      const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+      return `${String(month).padStart(2, '0')}月${String(day).padStart(2, '0')}日（${weekdays[date.getDay()]}）`;
+    }
+
+    function timeToMinutes(timeValue) {
+      const [hour, minute] = timeValue.split(':').map(Number);
+      return hour * 60 + minute;
+    }
+
+    function getInterviewSlot(slotId, label) {
+      const date = document.getElementById(`${slotId}Date`).value;
+      const allDay = document.getElementById(`${slotId}AllDay`).checked;
+      const start = document.getElementById(`${slotId}Start`).value;
+      const end = document.getElementById(`${slotId}End`).value;
+
+      return {
+        id: slotId,
+        label,
+        date,
+        allDay,
+        start,
+        end,
+        display: date
+          ? `${formatDateJa(date)}${allDay ? '終日可能' : `${start}- ${end}`}`
+          : ''
+      };
+    }
+
+    function validateInterviewSlots() {
+      const slots = SLOT_DEFINITIONS.map((slot) => getInterviewSlot(slot.id, slot.label));
+      for (const slot of slots) {
+        if (!slot.date) {
+          return `${slot.label}の日付を選択してください。`;
+        }
+        if (!slot.allDay && (!slot.start || !slot.end)) {
+          return `${slot.label}は開始時刻と終了時刻を選択してください。`;
+        }
+        if (!slot.allDay && timeToMinutes(slot.end) <= timeToMinutes(slot.start)) {
+          return `${slot.label}は終了時刻を開始時刻より後にしてください。`;
+        }
+      }
+      return '';
+    }
+
+    function getRadioValue(name) {
+      return document.querySelector(`input[name="${name}"]:checked`)?.value || '';
+    }
+
+    function collectApplication() {
+      const photo = getSelectedPhoto();
+      return {
+        lastName: document.getElementById('lastName').value.trim(),
+        firstName: document.getElementById('firstName').value.trim(),
+        lastNameKana: document.getElementById('lastNameKana').value.trim(),
+        firstNameKana: document.getElementById('firstNameKana').value.trim(),
+        birthDate: document.getElementById('birthDate').value,
+        age: calculateAge(document.getElementById('birthDate').value),
+        gender: getRadioValue('gender'),
+        dealerExperience: getRadioValue('dealerExperience'),
+        dealerHistory: document.getElementById('dealerHistory').value.trim(),
+        previousStore: document.getElementById('previousStore').value.trim(),
+        dealerName: document.getElementById('dealerName').value.trim(),
+        preferredStore: document.getElementById('preferredStore').value,
+        phone: document.getElementById('phone').value.trim(),
+        photoFileName: photo?.name || '',
+        photoFileType: photo?.type || '',
+        photoFileSize: photo?.size || 0,
+        appeal: document.getElementById('appeal').value.trim(),
+        interviewSlots: SLOT_DEFINITIONS.map((slot) => getInterviewSlot(slot.id, slot.label)),
+        notes: document.getElementById('notes').value.trim()
+      };
+    }
+
+    function showError(target, message) {
+      target.textContent = message;
+      target.classList.toggle('show', Boolean(message));
+    }
+
+    function showScreen(screen) {
+      [inputScreen, confirmScreen, completeScreen].forEach((item) => item.classList.remove('active'));
+      screen.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function confirmationItem(label, value) {
+      return `<div class="confirmation-item"><div class="confirmation-label">${escapeHtml(label)}</div><div class="confirmation-value">${escapeHtml(value || '未入力')}</div></div>`;
+    }
+
+    function renderConfirmation(data) {
+      const name = `${data.lastName} ${data.firstName}`;
+      const kana = `${data.lastNameKana} ${data.firstNameKana}`;
+      const birthDate = data.birthDate ? data.birthDate.replaceAll('-', '/') : '';
+      const age = data.age === '' || data.age == null ? '' : `満${data.age}歳`;
+      const experience = data.dealerExperience === 'あり'
+        ? `あり\n${[data.dealerHistory, data.previousStore, data.dealerName].filter(Boolean).join(' / ') || '詳細未入力'}`
+        : data.dealerExperience;
+      const interview = data.interviewSlots.map((slot) => `${slot.label}：${slot.display}`).join('\n');
+
+      document.getElementById('confirmationCard').innerHTML = [
+        confirmationItem('希望勤務店舗', data.preferredStore),
+        confirmationItem('氏名', name),
+        confirmationItem('氏名（かな）', kana),
+        confirmationItem('生年月日', birthDate),
+        confirmationItem('年齢', age),
+        confirmationItem('性別（ジェンダー）', data.gender),
+        confirmationItem('ディーラー経験', experience),
+        confirmationItem('電話番号', data.phone),
+        confirmationItem('顔写真', data.photoFileName ? `添付あり：${data.photoFileName}` : '添付なし'),
+        confirmationItem('アピールポイント', data.appeal),
+        confirmationItem('面接希望日時', interview),
+        confirmationItem('その他・備考', data.notes || '特になし')
+      ].join('');
+    }
+
+    function flexText(label, value, margin = 'md') {
+      return {
+        type: 'box',
+        layout: 'vertical',
+        margin,
+        spacing: 'xs',
+        contents: [
+          { type: 'text', text: label, size: 'xs', color: '#6B7280' },
+          { type: 'text', text: value || '未入力', size: 'sm', color: '#111827', wrap: true }
+        ]
+      };
+    }
+
+    function buildRecruitmentFlexMessage(data) {
+      const name = `${data.lastName} ${data.firstName}`;
+      const kana = `${data.lastNameKana} ${data.firstNameKana}`;
+      const birthDate = data.birthDate ? data.birthDate.replaceAll('-', '/') : '未入力';
+      const ageValue = data.age === '' || data.age == null ? calculateAge(data.birthDate) : data.age;
+      const age = ageValue === '' ? '未入力' : `満${ageValue}歳`;
+      const experience = data.dealerExperience === 'あり'
+        ? `あり（${[data.dealerHistory, data.previousStore, data.dealerName].filter(Boolean).join(' / ') || '詳細未入力'}）`
+        : data.dealerExperience;
+      const interviewContents = data.interviewSlots.flatMap((slot, index) => [
+        flexText(slot.label, slot.display, index === 0 ? 'md' : 'sm')
+      ]);
+
+      return {
+        type: 'bubble',
+        size: 'giga',
+        header: {
+          type: 'box',
+          layout: 'vertical',
+          paddingAll: '18px',
+          backgroundColor: '#06C755',
+          contents: [
+            { type: 'text', text: '求人応募', color: '#FFFFFF', size: 'xl', weight: 'bold' },
+            { type: 'text', text: `${data.preferredStore} 希望`, color: '#FFFFFF', size: 'sm', margin: 'sm' }
+          ]
+        },
+        body: {
+          type: 'box',
+          layout: 'vertical',
+          paddingAll: '18px',
+          spacing: 'sm',
+          contents: [
+            flexText('希望勤務店舗', data.preferredStore, 'none'),
+            flexText('氏名', name, 'none'),
+            flexText('氏名（かな）', kana),
+            flexText('生年月日', birthDate),
+            flexText('年齢', age),
+            flexText('性別（ジェンダー）', data.gender),
+            flexText('ディーラー経験', experience),
+            flexText('電話番号', data.phone),
+            flexText('顔写真', data.photoFileName ? `添付あり：${data.photoFileName}` : '添付なし'),
+            { type: 'separator', margin: 'lg' },
+            { type: 'text', text: '面接希望日時', weight: 'bold', size: 'md', margin: 'lg', color: '#111827' },
+            ...interviewContents,
+            { type: 'separator', margin: 'lg' },
+            flexText('アピールポイント', data.appeal, 'lg'),
+            flexText('その他・備考', data.notes || '特になし')
+          ]
+        },
+        footer: {
+          type: 'box',
+          layout: 'vertical',
+          paddingAll: '14px',
+          contents: [
+            { type: 'text', text: '応募者から送信されたフォーム内容です。', size: 'xs', color: '#6B7280', wrap: true }
+          ]
+        }
+      };
+    }
+
+    // 通知音を鳴らす目的の通常テキスト。Flex Messageより必ず先に送る。
+    function buildApplicationNoticeMessage(data) {
+      return {
+        type: 'text',
+        text: `求人を応募しました｜${data.preferredStore}`
+      };
+    }
+
+    async function initializeLiff() {
+      if (PREVIEW_MODE) {
+        liffReady = true;
+        confirmButton.disabled = false;
+        confirmButton.textContent = '入力内容を確認する（プレビュー）';
+        return;
+      }
+
+      if (!window.liff || LIFF_ID === 'REPLACE_WITH_LIFF_ID') {
+        showError(inputError, 'LIFF IDが設定されていません。公式LINEから開く本番URLにLIFF IDを設定してください。');
+        confirmButton.textContent = 'LIFF設定が必要です';
+        return;
+      }
+
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        const context = liff.getContext();
+        const allowedContext = context && context.type === 'utou';
+        if (!liff.isInClient() || !allowedContext) {
+          throw new Error('公式LINEの1対1トークから開いてください。');
+        }
+
+        if (liff.permission && typeof liff.permission.query === 'function') {
+          let permission = await liff.permission.query('chat_message.write');
+          if (permission.state === 'prompt' && typeof liff.permission.requestAll === 'function') {
+            await liff.permission.requestAll();
+            permission = await liff.permission.query('chat_message.write');
+          }
+          if (permission.state !== 'granted') {
+            throw new Error('Flex Message送信の許可が必要です。許可後にもう一度お試しください。');
+          }
+        }
+
+        try {
+          const profile = await liff.getProfile();
+          lineProfile = {
+            userId: profile?.userId || '',
+            displayName: profile?.displayName || ''
+          };
+        } catch (profileError) {
+          // 応募自体は止めず、取得できた範囲だけをシートへ記録する。
+          console.warn('LINEプロフィールを取得できませんでした', profileError);
+        }
+
+        liffReady = true;
+        confirmButton.disabled = false;
+        confirmButton.textContent = '入力内容を確認する';
+      } catch (error) {
+        console.error(error);
+        showError(inputError, error.message || 'LINEとの接続に失敗しました。公式LINEからもう一度開いてください。');
+        confirmButton.textContent = 'LINE接続エラー';
+      }
+    }
+
+    applicationForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      showError(inputError, '');
+
+      if (!liffReady) {
+        showError(inputError, 'LINEとの接続が完了していません。公式LINEから開き直してください。');
+        return;
+      }
+
+      if (!applicationForm.checkValidity()) {
+        applicationForm.reportValidity();
+        return;
+      }
+
+      const slotError = validateInterviewSlots();
+      if (slotError) {
+        showError(inputError, slotError);
+        return;
+      }
+
+      const photoError = validatePhoto();
+      if (photoError) {
+        showError(inputError, photoError);
+        return;
+      }
+
+      applicationData = collectApplication();
+      renderConfirmation(applicationData);
+      showScreen(confirmScreen);
+    });
+
+    document.querySelectorAll('input[name="dealerExperience"]').forEach((radio) => {
+      radio.addEventListener('change', () => {
+        document.getElementById('experienceDetails').hidden = getRadioValue('dealerExperience') !== 'あり';
+      });
+    });
+
+    editButton.addEventListener('click', () => {
+      showError(confirmError, '');
+      showScreen(inputScreen);
+    });
+
+    submitButton.addEventListener('click', async () => {
+      if (!applicationData || submissionInProgress || messageSent) return;
+      submissionInProgress = true;
+      showError(confirmError, '');
+      submitButton.disabled = true;
+      editButton.disabled = true;
+      submitButton.textContent = '送信中...';
+
+      let lineMessagesSent = false;
+      let sheetStatusUpdateFailed = false;
+      try {
+        applicationData.submissionId = applicationData.submissionId || createSubmissionId();
+        const photo = await buildPhotoPayload();
+        lastTextPayload = buildApplicationNoticeMessage(applicationData);
+        lastFlexPayload = buildRecruitmentFlexMessage(applicationData);
+        const messages = [
+          lastTextPayload,
+          {
+            type: 'flex',
+            altText: `求人応募（${applicationData.preferredStore}希望）`,
+            contents: lastFlexPayload
+          }
+        ];
+
+        // 先に記録を作り、記録成功後にLINEへ送る。送信失敗時も応募内容を残せる。
+        await postToBackend({
+          action: 'append',
+          submissionId: applicationData.submissionId,
+          application: applicationData,
+          photo,
+          lineProfile
+        });
+
+        if (!PREVIEW_MODE) {
+          // 配列順が通知テキスト → Flex Messageとなることを固定する。
+          await liff.sendMessages(messages);
+          lineMessagesSent = true;
+          try {
+            await postToBackend({
+              action: 'mark_line_sent',
+              submissionId: applicationData.submissionId
+            });
+          } catch (statusError) {
+            console.warn('送信済み状態の更新に失敗しました', statusError);
+            sheetStatusUpdateFailed = true;
+          }
+        }
+
+        messageSent = true;
+        clearDraft();
+        if (PREVIEW_MODE) {
+          document.getElementById('completeText').innerHTML = 'プレビュー用に通知テキスト＋Flex MessageのJSONを生成しました。<br>本番ではこの順番で公式LINEのトークへ送信されます。';
+          document.getElementById('previewPayload').hidden = false;
+          document.getElementById('previewPayload').textContent = JSON.stringify({ messages }, null, 2);
+        } else if (sheetStatusUpdateFailed) {
+          document.getElementById('completeText').innerHTML = '公式LINEへの通知テキストとFlex Messageは送信されました。<br>ただし、スプレッドシートの送信済み状態の更新に失敗したため、管理画面で記録をご確認ください。';
+        }
+        showScreen(completeScreen);
+      } catch (error) {
+        console.error(error);
+        if (lineMessagesSent) {
+          messageSent = true;
+          clearDraft();
+          document.getElementById('completeText').innerHTML = '公式LINEへの通知テキストとFlex Messageは送信されました。<br>スプレッドシートの送信済み状態の更新だけ確認できませんでした。';
+          showScreen(completeScreen);
+        } else {
+          showError(confirmError, error.message || '応募内容の記録またはFlex Messageの送信に失敗しました。公式LINEのトークから開いているか、接続先設定をご確認ください。');
+        }
+      } finally {
+        submissionInProgress = false;
+        submitButton.disabled = messageSent;
+        editButton.disabled = messageSent;
+        submitButton.textContent = '公式LINEへ送信する';
+      }
+    });
+
+    closeButton.addEventListener('click', () => {
+      if (!PREVIEW_MODE && window.liff && liff.isInClient()) {
+        liff.closeWindow();
+        return;
+      }
+      window.history.back();
+    });
+
+    renderInterviewSlots();
+    applicationForm.addEventListener('input', queueDraftSave);
+    applicationForm.addEventListener('change', queueDraftSave);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', saveDraft);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') saveDraft();
+    });
+    restoreDraft();
+    document.getElementById('birthDate').addEventListener('input', updateAgeDisplay);
+    updateAgeDisplay();
+    initializeLiff();
+
+    // テストから参照できるよう、純粋な生成関数だけを公開する。
+    window.buildApplicationNoticeMessage = buildApplicationNoticeMessage;
+    window.buildRecruitmentFlexMessage = buildRecruitmentFlexMessage;
+    window.calculateAge = calculateAge;
+    window.formatDateJa = formatDateJa;
+  </script>
+</body>
+</html>

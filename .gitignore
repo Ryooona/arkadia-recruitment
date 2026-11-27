@@ -1,0 +1,4 @@
+output/
+*.xlsx
+*.ndjson
+.DS_Store
