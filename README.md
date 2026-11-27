@@ -8,10 +8,10 @@ GitHubリポジトリ：https://github.com/Ryooona/arkadia-recruitment
 
 応募者が送信すると、次の順番で同じ公式LINEトークへ届きます。
 
-1. 応募内容をまとめたFlex Message：`求人応募｜店舗名 〇〇店`
-2. 顔写真を添付した場合のみ、顔写真の画像メッセージ
+1. 顔写真を添付した場合のみ、顔写真の画像メッセージ
+2. 応募内容をまとめたFlex Message：`求人応募｜店舗名 〇〇店`
 
-この順番は `liff.sendMessages([Flex Message, 画像メッセージ])` で固定しています。
+この順番は `liff.sendMessages([画像メッセージ, Flex Message])` で固定しています。
 
 ## フォーム項目
 

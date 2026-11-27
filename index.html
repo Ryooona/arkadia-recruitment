@@ -425,7 +425,7 @@
       <h1>Arkadia求人窓口<br>求人応募フォーム</h1>
       <p class="description">
         必要事項と面接の希望日時をご入力ください。<br>
-        送信すると、入力内容のFlex Messageが「Arkadia求人窓口（@158zkwys）」のトークへ届きます。顔写真を添付した場合は、Flex Messageの後に画像メッセージとして届きます。
+        送信すると、入力内容のFlex Messageが「Arkadia求人窓口（@158zkwys）」のトークへ届きます。顔写真を添付した場合は、写真が先に画像メッセージとして届き、その後にFlex Messageが届きます。
       </p>
       <div id="draftNotice" class="message-box">
         入力途中の内容は、この端末に24時間一時保存されます。応募送信が完了すると削除されます。<br>
@@ -1404,13 +1404,12 @@
         applicationData.submissionId = applicationData.submissionId || createSubmissionId();
         const photo = await buildPhotoPayload();
         lastFlexPayload = buildRecruitmentFlexMessage(applicationData);
-        const messages = [
-          {
-            type: 'flex',
-            altText: buildApplicationAltText(applicationData),
-            contents: lastFlexPayload
-          }
-        ];
+        const flexMessage = {
+          type: 'flex',
+          altText: buildApplicationAltText(applicationData),
+          contents: lastFlexPayload
+        };
+        const messages = [flexMessage];
 
         if (!PREVIEW_MODE && !liffReady) {
           throw new Error('応募を確定するには、公式LINEの1対1トークからこのフォームを開いてください。');
@@ -1426,9 +1425,9 @@
         });
 
         if (!PREVIEW_MODE) {
-          // 応募内容のFlex Messageを先に送り、顔写真があれば直後に画像として送る。
+          // 顔写真があれば先に画像として送り、その後に応募内容のFlex Messageを送る。
           if (photo) {
-            messages.push(buildApplicationImageMessage(await getPhotoMedia(applicationData.submissionId)));
+            messages.unshift(buildApplicationImageMessage(await getPhotoMedia(applicationData.submissionId)));
           }
           await liff.sendMessages(messages);
           lineMessagesSent = true;
@@ -1447,7 +1446,7 @@
         messageSent = true;
         clearDraft();
         if (PREVIEW_MODE) {
-          document.getElementById('completeText').innerHTML = 'プレビュー用にFlex MessageのJSONを生成しました。<br>本番では応募内容のFlex Messageを送信し、顔写真があれば続けて画像メッセージを送信します。';
+          document.getElementById('completeText').innerHTML = 'プレビュー用にFlex MessageのJSONを生成しました。<br>本番では顔写真があれば画像メッセージを先に送り、その後に応募内容のFlex Messageを送信します。';
           document.getElementById('previewPayload').hidden = false;
           document.getElementById('previewPayload').textContent = JSON.stringify({ messages }, null, 2);
         } else if (sheetStatusUpdateFailed) {

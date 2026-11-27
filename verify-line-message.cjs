@@ -130,8 +130,8 @@ assert.equal(payload.body.contents.some((item) => item.contents?.some((child) =>
 assert.equal(payload.footer.contents[0].text, '応募者から送信されたフォーム内容です。');
 assert.equal(JSON.stringify(payload).includes('email'), false);
 assert.equal(JSON.stringify([
-  { type: 'flex', altText, contents: payload },
-  imageMessage
-].map((message) => message.type)), JSON.stringify(['flex', 'image']));
+  imageMessage,
+  { type: 'flex', altText, contents: payload }
+].map((message) => message.type)), JSON.stringify(['image', 'flex']));
 
-console.log('PASS: 店舗名入りFlex通知文、Flex→画像の送信順、日付範囲、30分刻み時刻、終日表示を確認');
+console.log('PASS: 店舗名入りFlex通知文、画像→Flexの送信順、日付範囲、30分刻み時刻、終日表示を確認');
