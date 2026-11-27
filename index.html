@@ -230,7 +230,7 @@
 
     .interview-input-row {
       display: grid;
-      grid-template-columns: minmax(120px, 145px) minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-columns: minmax(120px, 145px) minmax(140px, 1fr) minmax(220px, 1.4fr);
       gap: 8px;
       align-items: center;
     }
@@ -242,14 +242,21 @@
 
     .time-controls {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
       gap: 6px;
       align-items: center;
     }
 
-    .time-controls .separator {
+    .time-controls select {
+      min-width: 0;
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+
+    .time-controls .time-label {
       color: var(--muted);
       font-size: 14px;
+      white-space: nowrap;
       text-align: center;
     }
 
@@ -530,7 +537,8 @@
 
         <div class="section-title">面接希望日時</div>
         <p class="helper">
-          第1〜第3希望をすべてご入力ください。時刻は15分単位で選択できます。<br>
+          第1〜第3希望をすべてご入力ください。日付は当日を含む直近1ヶ月から選択できます。<br>
+          時刻は12:00〜27:00の30分単位で選択できます。<br>
           「終日可能」にチェックした場合、その日の時刻選択は不要です。
         </p>
 
@@ -539,7 +547,8 @@
         <div class="message-box">
           ※書類審査を通過された方に、ご入力いただいた希望日時をもとに面接のご案内をいたします。<br>
           ※面接は対面またはオンラインにて、当社指定の方法で実施します。<br>
-          ※面接調整のため、希望時間帯は余裕を持ってご入力ください。
+          ※面接調整のため、希望時間帯は余裕を持ってご入力ください。<br>
+          ※面接時間は30分程度を予定しております。
         </div>
 
         <div class="field">
@@ -587,8 +596,10 @@
     // 任意。Apps Script側で設定した共有シークレットと同じ値にする。
     const BACKEND_SHARED_SECRET = '';
     const PREVIEW_MODE = new URLSearchParams(location.search).has('preview');
-    const INTERVIEW_TIME_START_MINUTES = 0;
-    const INTERVIEW_TIME_END_MINUTES = 23 * 60 + 45;
+    const INTERVIEW_DATE_RANGE_DAYS = 31;
+    const INTERVIEW_TIME_START_MINUTES = 12 * 60;
+    const INTERVIEW_TIME_END_MINUTES = 27 * 60;
+    const INTERVIEW_TIME_STEP_MINUTES = 30;
     const DRAFT_STORAGE_KEY = 'arkadia_recruitment_draft_v2';
     const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
     const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
@@ -883,18 +894,45 @@
       event.returnValue = '';
     }
 
+    function formatDateInputValue(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function createInterviewDateOptions() {
+      const startDate = new Date();
+      startDate.setHours(0, 0, 0, 0);
+      const options = ['<option value="">日付</option>'];
+      for (let offset = 0; offset < INTERVIEW_DATE_RANGE_DAYS; offset += 1) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + offset);
+        const value = formatDateInputValue(date);
+        options.push(`<option value="${value}">${formatDateJa(value)}</option>`);
+      }
+      return options.join('');
+    }
+
+    function formatTimeJa(timeValue) {
+      if (!timeValue) return '';
+      const [hour, minute] = timeValue.split(':');
+      return `${hour}時${minute}分`;
+    }
+
     function createTimeOptions(startMinutes, endMinutes) {
-      const options = ['<option value="">時刻を選択</option>'];
-      for (let minutes = startMinutes; minutes <= endMinutes; minutes += 15) {
+      const options = ['<option value="">時刻</option>'];
+      for (let minutes = startMinutes; minutes <= endMinutes; minutes += INTERVIEW_TIME_STEP_MINUTES) {
         const hour = String(Math.floor(minutes / 60)).padStart(2, '0');
         const minute = String(minutes % 60).padStart(2, '0');
         const value = `${hour}:${minute}`;
-        options.push(`<option value="${value}">${value}</option>`);
+        options.push(`<option value="${value}">${formatTimeJa(value)}</option>`);
       }
       return options.join('');
     }
 
     function renderInterviewSlots() {
+      const dateOptions = createInterviewDateOptions();
       const timeOptions = createTimeOptions(INTERVIEW_TIME_START_MINUTES, INTERVIEW_TIME_END_MINUTES);
       interviewSlots.innerHTML = SLOT_DEFINITIONS.map((slot) => `
         <div class="interview-card" data-slot="${slot.id}">
@@ -903,11 +941,12 @@
             <label class="check-option" for="${slot.id}AllDay">
               <input id="${slot.id}AllDay" type="checkbox">終日可能
             </label>
-            <input id="${slot.id}Date" type="date" min="${getTodayString()}" aria-label="${slot.label}の日付" required>
+            <select id="${slot.id}Date" aria-label="${slot.label}の日付" required>${dateOptions}</select>
             <div id="${slot.id}TimeControls" class="time-controls">
               <select id="${slot.id}Start" aria-label="${slot.label}の開始時刻" required>${timeOptions}</select>
-              <span class="separator">-</span>
+              <span class="time-label">から</span>
               <select id="${slot.id}End" aria-label="${slot.label}の終了時刻" required>${timeOptions}</select>
+              <span class="time-label">までの間</span>
             </div>
             <div id="${slot.id}AllDayNote" class="all-day-note" aria-live="polite">終日可能</div>
           </div>
@@ -989,7 +1028,7 @@
         start,
         end,
         display: date
-          ? `${formatDateJa(date)}${allDay ? '終日可能' : `${start}- ${end}`}`
+          ? `${formatDateJa(date)}${allDay ? '終日可能' : ` ${formatTimeJa(start)}から${formatTimeJa(end)}までの間`}`
           : ''
       };
     }

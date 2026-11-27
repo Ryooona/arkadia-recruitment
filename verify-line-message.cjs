@@ -81,9 +81,9 @@ const application = {
   email: 'taro@example.com',
   appeal: '接客経験があります。',
   interviewSlots: [
-    { label: '第1希望', display: '12月03日（木）18:00- 19:00' },
+    { label: '第1希望', display: '12月03日（木）18時00分から19時00分までの間' },
     { label: '第2希望', display: '12月04日（金）終日可能' },
-    { label: '第3希望', display: '12月05日（土）20:15- 21:45' }
+    { label: '第3希望', display: '12月05日（土）20時00分から21時30分までの間' }
   ],
   photoFileName: 'face.jpg',
   notes: 'よろしくお願いいたします。'
@@ -101,6 +101,14 @@ const notice = vm.runInContext(
 assert.equal(notice.type, 'text');
 assert.equal(notice.text, '求人を応募しました｜船橋店');
 assert.equal(vm.runInContext("calculateAge('2000-04-22', new Date(2026, 10, 27))", context), 26);
+assert.equal(vm.runInContext("formatTimeJa('27:00')", context), '27時00分');
+const timeOptions = vm.runInContext('createTimeOptions(12 * 60, 27 * 60)', context);
+assert.equal(timeOptions.includes('value="12:00">12時00分'), true);
+assert.equal(timeOptions.includes('value="12:30">12時30分'), true);
+assert.equal(timeOptions.includes('value="12:15"'), false);
+assert.equal(timeOptions.includes('value="27:00">27時00分'), true);
+const dateOptions = vm.runInContext('createInterviewDateOptions()', context);
+assert.equal((dateOptions.match(/<option/g) || []).length, 32);
 assert.equal(payload.type, 'bubble');
 assert.equal(payload.size, 'giga');
 assert.equal(payload.header.contents[0].text, '求人応募');
@@ -109,10 +117,10 @@ assert.equal(payload.body.contents.some((item) => item.contents?.some((child) =>
 assert.equal(payload.body.contents.some((item) => item.contents?.some((child) => child.text === '年齢')), true);
 assert.equal(payload.body.contents.some((item) => item.contents?.some((child) => child.text === '添付あり：face.jpg')), true);
 assert.equal(payload.body.contents.some((item) => item.contents?.some((child) => child.text === '12月04日（金）終日可能')), true);
-assert.equal(payload.body.contents.some((item) => item.contents?.some((child) => child.text === '12月03日（木）18:00- 19:00')), true);
+assert.equal(payload.body.contents.some((item) => item.contents?.some((child) => child.text === '12月03日（木）18時00分から19時00分までの間')), true);
 assert.equal(payload.footer.contents[0].text, '応募者から送信されたフォーム内容です。');
 assert.equal(JSON.stringify(payload).includes('email'), false);
 assert.equal([notice, { type: 'flex', altText: '求人応募（船橋店希望）', contents: payload }][0].type, 'text');
 assert.equal([notice, { type: 'flex', altText: '求人応募（船橋店希望）', contents: payload }][1].type, 'flex');
 
-console.log('PASS: 通知テキストをFlex Messageより先に送る順序、Flex構造、終日表示、15分刻み形式を確認');
+console.log('PASS: 通知テキストをFlex Messageより先に送る順序、日付範囲、30分刻み時刻、終日表示を確認');
