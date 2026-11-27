@@ -101,12 +101,12 @@ const notice = vm.runInContext(
 assert.equal(notice.type, 'text');
 assert.equal(notice.text, '求人を応募しました｜船橋店');
 assert.equal(vm.runInContext("calculateAge('2000-04-22', new Date(2026, 10, 27))", context), 26);
-assert.equal(vm.runInContext("formatTimeJa('27:00')", context), '27時00分');
-const timeOptions = vm.runInContext('createTimeOptions(12 * 60, 27 * 60)', context);
+assert.equal(vm.runInContext("formatTimeJa('24:00')", context), '24時00分');
+const timeOptions = vm.runInContext('createTimeOptions(12 * 60, 24 * 60)', context);
 assert.equal(timeOptions.includes('value="12:00">12時00分'), true);
 assert.equal(timeOptions.includes('value="12:30">12時30分'), true);
 assert.equal(timeOptions.includes('value="12:15"'), false);
-assert.equal(timeOptions.includes('value="27:00">27時00分'), true);
+assert.equal(timeOptions.includes('value="24:00">24時00分'), true);
 const dateOptions = vm.runInContext('createInterviewDateOptions()', context);
 assert.equal((dateOptions.match(/<option/g) || []).length, 32);
 assert.equal(payload.type, 'bubble');

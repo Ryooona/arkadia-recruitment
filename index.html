@@ -538,7 +538,7 @@
         <div class="section-title">面接希望日時</div>
         <p class="helper">
           第1〜第3希望をすべてご入力ください。日付は当日を含む直近1ヶ月から選択できます。<br>
-          時刻は12:00〜27:00の30分単位で選択できます。<br>
+          時刻は12:00〜24:00の30分単位で選択できます。<br>
           「終日可能」にチェックした場合、その日の時刻選択は不要です。
         </p>
 
@@ -598,7 +598,7 @@
     const PREVIEW_MODE = new URLSearchParams(location.search).has('preview');
     const INTERVIEW_DATE_RANGE_DAYS = 31;
     const INTERVIEW_TIME_START_MINUTES = 12 * 60;
-    const INTERVIEW_TIME_END_MINUTES = 27 * 60;
+    const INTERVIEW_TIME_END_MINUTES = 24 * 60;
     const INTERVIEW_TIME_STEP_MINUTES = 30;
     const DRAFT_STORAGE_KEY = 'arkadia_recruitment_draft_v2';
     const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
