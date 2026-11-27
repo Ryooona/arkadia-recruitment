@@ -68,6 +68,37 @@
 
     .field { margin-bottom: 22px; }
 
+    .two-column-fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .two-column-fields .field,
+    .birth-age-fields .field {
+      min-width: 0;
+      margin-bottom: 0;
+    }
+
+    .birth-age-fields {
+      display: grid;
+      grid-template-columns: minmax(0, 1.65fr) minmax(120px, .75fr);
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .birth-select-row {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .birth-select-row select:disabled {
+      background: #f3f4f6;
+      color: var(--muted);
+    }
+
     label, legend {
       display: block;
       margin-bottom: 8px;
@@ -364,6 +395,11 @@
     [hidden] { display: none !important; }
 
     @media (max-width: 520px) {
+      .two-column-fields,
+      .birth-age-fields {
+        grid-template-columns: 1fr;
+      }
+
       .interview-input-row {
         grid-template-columns: 1fr;
       }
@@ -402,34 +438,45 @@
           </select>
         </div>
 
-        <div class="field">
-          <label for="lastName">姓<span class="required">必須</span></label>
-          <input id="lastName" type="text" autocomplete="family-name" required>
+        <div class="two-column-fields">
+          <div class="field">
+            <label for="lastName">姓<span class="required">必須</span></label>
+            <input id="lastName" type="text" autocomplete="family-name" required>
+          </div>
+
+          <div class="field">
+            <label for="firstName">名<span class="required">必須</span></label>
+            <input id="firstName" type="text" autocomplete="given-name" required>
+          </div>
         </div>
 
-        <div class="field">
-          <label for="firstName">名<span class="required">必須</span></label>
-          <input id="firstName" type="text" autocomplete="given-name" required>
+        <div class="two-column-fields">
+          <div class="field">
+            <label for="lastNameKana">姓（かな）<span class="required">必須</span></label>
+            <input id="lastNameKana" type="text" inputmode="kana" autocomplete="off" required>
+          </div>
+
+          <div class="field">
+            <label for="firstNameKana">名（かな）<span class="required">必須</span></label>
+            <input id="firstNameKana" type="text" inputmode="kana" autocomplete="off" required>
+          </div>
         </div>
 
-        <div class="field">
-          <label for="lastNameKana">姓（かな）<span class="required">必須</span></label>
-          <input id="lastNameKana" type="text" inputmode="kana" required>
-        </div>
+        <div class="birth-age-fields">
+          <div class="field">
+            <label for="birthYear">生年月日<span class="required">必須</span></label>
+            <div class="birth-select-row">
+              <select id="birthYear" aria-label="生年月日の年" required></select>
+              <select id="birthMonth" aria-label="生年月日の月" required></select>
+              <select id="birthDay" aria-label="生年月日の日" required disabled></select>
+            </div>
+            <input id="birthDate" type="hidden" autocomplete="bday">
+          </div>
 
-        <div class="field">
-          <label for="firstNameKana">名（かな）<span class="required">必須</span></label>
-          <input id="firstNameKana" type="text" inputmode="kana" required>
-        </div>
-
-        <div class="field">
-          <label for="birthDate">生年月日<span class="required">必須</span></label>
-          <input id="birthDate" type="date" autocomplete="bday" required>
-        </div>
-
-        <div class="derived-field">
-          <div class="derived-label">年齢</div>
-          <div id="ageDisplay" class="derived-value" aria-live="polite">生年月日を入力すると自動表示されます</div>
+          <div class="field">
+            <div class="derived-label">年齢</div>
+            <div id="ageDisplay" class="derived-value" aria-live="polite">生年月日を入力すると自動表示されます</div>
+          </div>
         </div>
 
         <fieldset>
@@ -500,7 +547,7 @@
           <textarea id="notes" placeholder="勤務開始時期やご質問などがあればご入力ください"></textarea>
         </div>
 
-        <button id="confirmButton" class="button primary" type="submit" disabled>LINE接続を確認中...</button>
+        <button id="confirmButton" class="button primary" type="submit">確認する</button>
       </form>
       <div id="inputError" class="error-message" role="alert"></div>
     </section>
@@ -511,8 +558,8 @@
       <div id="confirmationCard" class="confirmation-card"></div>
       <div class="message-box">送信後、入力内容を含むFlex Messageが公式LINEのトークに表示されます。</div>
       <div class="button-row">
+        <button id="submitButton" class="button primary" type="button">応募する</button>
         <button id="editButton" class="button secondary" type="button">修正する</button>
-        <button id="submitButton" class="button primary" type="button">公式LINEへ送信する</button>
       </div>
       <div id="confirmError" class="error-message" role="alert"></div>
     </section>
@@ -520,7 +567,7 @@
     <section id="completeScreen" class="screen">
       <div class="complete-box">
         <div class="complete-icon">✓</div>
-        <div class="complete-title">応募内容を送信しました</div>
+        <div class="complete-title">応募が完了しました</div>
         <div id="completeText" class="complete-text">
           公式LINEのトークに応募内容が届いています。<br>
           内容を確認後、担当者よりご連絡いたします。
@@ -565,6 +612,9 @@
     const interviewSlots = document.getElementById('interviewSlots');
     const ageDisplay = document.getElementById('ageDisplay');
     const draftNotice = document.getElementById('draftNotice');
+    const birthYearSelect = document.getElementById('birthYear');
+    const birthMonthSelect = document.getElementById('birthMonth');
+    const birthDaySelect = document.getElementById('birthDay');
 
     let liffReady = false;
     let submissionInProgress = false;
@@ -592,6 +642,77 @@
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
+    }
+
+    function getDaysInMonth(year, month) {
+      return new Date(year, month, 0).getDate();
+    }
+
+    function populateBirthDateOptions() {
+      const currentYear = new Date().getFullYear();
+      const yearOptions = ['<option value="">年を選択</option>'];
+      for (let year = currentYear; year >= currentYear - 120; year -= 1) {
+        yearOptions.push(`<option value="${year}">${year}年</option>`);
+      }
+      birthYearSelect.innerHTML = yearOptions.join('');
+
+      const monthOptions = ['<option value="">月を選択</option>'];
+      for (let month = 1; month <= 12; month += 1) {
+        const value = String(month).padStart(2, '0');
+        monthOptions.push(`<option value="${value}">${month}月</option>`);
+      }
+      birthMonthSelect.innerHTML = monthOptions.join('');
+      birthDaySelect.innerHTML = '<option value="">日を選択</option>';
+      birthDaySelect.disabled = true;
+    }
+
+    function updateBirthDayOptions() {
+      const year = Number(birthYearSelect.value);
+      const month = Number(birthMonthSelect.value);
+      const previousDay = birthDaySelect.value;
+      if (!year || !month) {
+        birthDaySelect.innerHTML = '<option value="">日を選択</option>';
+        birthDaySelect.disabled = true;
+        updateBirthDateValue();
+        return;
+      }
+
+      const days = getDaysInMonth(year, month);
+      const dayOptions = ['<option value="">日を選択</option>'];
+      for (let day = 1; day <= days; day += 1) {
+        const value = String(day).padStart(2, '0');
+        dayOptions.push(`<option value="${value}">${day}日</option>`);
+      }
+      birthDaySelect.innerHTML = dayOptions.join('');
+      birthDaySelect.disabled = false;
+      if (previousDay && Number(previousDay) <= days) birthDaySelect.value = previousDay;
+      updateBirthDateValue();
+    }
+
+    function updateBirthDateValue() {
+      const year = birthYearSelect.value;
+      const month = birthMonthSelect.value;
+      const day = birthDaySelect.value;
+      document.getElementById('birthDate').value = year && month && day
+        ? `${year}-${month}-${day}`
+        : '';
+      updateAgeDisplay();
+    }
+
+    function setBirthDateSelects(dateValue) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue || '')) {
+        birthYearSelect.value = '';
+        birthMonthSelect.value = '';
+        birthDaySelect.value = '';
+        updateBirthDayOptions();
+        return;
+      }
+      const [year, month, day] = dateValue.split('-');
+      birthYearSelect.value = year;
+      birthMonthSelect.value = month;
+      updateBirthDayOptions();
+      birthDaySelect.value = day;
+      updateBirthDateValue();
     }
 
     function getSelectedPhoto() {
@@ -656,6 +777,7 @@
     function getDraftState() {
       const fieldIds = [
         'lastName', 'firstName', 'lastNameKana', 'firstNameKana', 'birthDate',
+        'birthYear', 'birthMonth', 'birthDay',
         'dealerHistory', 'previousStore', 'dealerName', 'preferredStore',
         'phone', 'appeal', 'notes'
       ];
@@ -724,9 +846,11 @@
 
       restoringDraft = true;
       Object.entries(draft.fields || {}).forEach(([id, value]) => {
+        if (['birthDate', 'birthYear', 'birthMonth', 'birthDay'].includes(id)) return;
         const element = document.getElementById(id);
         if (element) element.value = value;
       });
+      setBirthDateSelects(draft.fields?.birthDate || '');
 
       ['gender', 'dealerExperience'].forEach((name) => {
         const value = draft.radioValues?.[name];
@@ -886,11 +1010,26 @@
       return '';
     }
 
+    function validateBirthDate() {
+      updateBirthDateValue();
+      return document.getElementById('birthDate').value
+        ? ''
+        : '生年月日を選択してください。';
+    }
+
+    function validateHiragana(value, label) {
+      if (!value) return `${label}を入力してください。`;
+      return /^[ぁ-ゖゝゞー\s]+$/u.test(value)
+        ? ''
+        : `${label}はひらがなで入力してください。`;
+    }
+
     function getRadioValue(name) {
       return document.querySelector(`input[name="${name}"]:checked`)?.value || '';
     }
 
     function collectApplication() {
+      updateBirthDateValue();
       const photo = getSelectedPhoto();
       return {
         lastName: document.getElementById('lastName').value.trim(),
@@ -1041,13 +1180,15 @@
       if (PREVIEW_MODE) {
         liffReady = true;
         confirmButton.disabled = false;
-        confirmButton.textContent = '入力内容を確認する（プレビュー）';
+        confirmButton.textContent = '確認する';
         return;
       }
 
       if (!window.liff || LIFF_ID === 'REPLACE_WITH_LIFF_ID') {
-        showError(inputError, 'LIFF IDが設定されていません。公式LINEから開く本番URLにLIFF IDを設定してください。');
-        confirmButton.textContent = 'LIFF設定が必要です';
+        // LIFF未設定でも、入力確認画面までは表示できるようにする。
+        // 最終の「応募する」で公式LINEからの起動を確認する。
+        confirmButton.disabled = false;
+        confirmButton.textContent = '確認する';
         return;
       }
 
@@ -1091,8 +1232,10 @@
         confirmButton.textContent = '入力内容を確認する';
       } catch (error) {
         console.error(error);
-        showError(inputError, error.message || 'LINEとの接続に失敗しました。公式LINEからもう一度開いてください。');
-        confirmButton.textContent = 'LINE接続エラー';
+        // 入力内容の確認は可能にし、送信時に接続エラーを案内する。
+        liffReady = false;
+        confirmButton.disabled = false;
+        confirmButton.textContent = '確認する';
       }
     }
 
@@ -1100,13 +1243,27 @@
       event.preventDefault();
       showError(inputError, '');
 
-      if (!liffReady) {
-        showError(inputError, 'LINEとの接続が完了していません。公式LINEから開き直してください。');
+      if (!applicationForm.checkValidity()) {
+        applicationForm.reportValidity();
         return;
       }
 
-      if (!applicationForm.checkValidity()) {
-        applicationForm.reportValidity();
+      const birthDateError = validateBirthDate();
+      if (birthDateError) {
+        showError(inputError, birthDateError);
+        return;
+      }
+
+      const lastNameKanaError = validateHiragana(
+        document.getElementById('lastNameKana').value.trim(),
+        '姓（かな）'
+      );
+      const firstNameKanaError = validateHiragana(
+        document.getElementById('firstNameKana').value.trim(),
+        '名（かな）'
+      );
+      if (lastNameKanaError || firstNameKanaError) {
+        showError(inputError, lastNameKanaError || firstNameKanaError);
         return;
       }
 
@@ -1161,6 +1318,10 @@
             contents: lastFlexPayload
           }
         ];
+
+        if (!PREVIEW_MODE && !liffReady) {
+          throw new Error('応募を確定するには、公式LINEの1対1トークからこのフォームを開いてください。');
+        }
 
         // 先に記録を作り、記録成功後にLINEへ送る。送信失敗時も応募内容を残せる。
         await postToBackend({
@@ -1222,6 +1383,10 @@
       window.history.back();
     });
 
+    populateBirthDateOptions();
+    birthYearSelect.addEventListener('change', updateBirthDayOptions);
+    birthMonthSelect.addEventListener('change', updateBirthDayOptions);
+    birthDaySelect.addEventListener('change', updateBirthDateValue);
     renderInterviewSlots();
     applicationForm.addEventListener('input', queueDraftSave);
     applicationForm.addEventListener('change', queueDraftSave);
@@ -1231,8 +1396,7 @@
       if (document.visibilityState === 'hidden') saveDraft();
     });
     restoreDraft();
-    document.getElementById('birthDate').addEventListener('input', updateAgeDisplay);
-    updateAgeDisplay();
+    updateBirthDateValue();
     initializeLiff();
 
     // テストから参照できるよう、純粋な生成関数だけを公開する。
