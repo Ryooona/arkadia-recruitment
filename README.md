@@ -65,6 +65,6 @@ https://docs.google.com/spreadsheets/d/1xQZ7iRbG5bT_onZ-IRDLR8cTvg_AYLWq6supT_0U
 - `?preview=1`：LINE送信とスプレッドシート送信を行わず、Flex MessageのJSONを確認
 - `verify-line-message.cjs`：店舗名入りaltText、Flex Message、年齢、終日可能、30分刻み表示を検証
 
-時刻候補は現在 `00:00〜23:45` です。面接対応時間を限定する場合は、`index.html` の `INTERVIEW_TIME_START_MINUTES` と `INTERVIEW_TIME_END_MINUTES` を変更します。
+時刻候補は現在 `12:00〜24:00` の30分単位です。面接対応時間を限定する場合は、`index.html` の `INTERVIEW_TIME_START_MINUTES` と `INTERVIEW_TIME_END_MINUTES` を変更します。
 
 顔写真をFlex内に表示するため、保存した顔写真はリンクを知っているユーザーが閲覧できるGoogle Driveリンクとして扱います。公式LINEの1対1トーク以外のブラウザから開いた場合、同じトークへ自動送信できません。本番では公式LINE内から開く導線に限定してください。
