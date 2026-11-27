@@ -2,6 +2,10 @@
 
 公式LINE「Arkadia求人窓口（@158zkwys）」のトークから開く求人応募フォームです。
 
+公開ページ：https://ryooona.github.io/arkadia-recruitment/
+
+GitHubリポジトリ：https://github.com/Ryooona/arkadia-recruitment
+
 応募者が送信すると、次の順番で同じ公式LINEトークへ届きます。
 
 1. 通知音を鳴らすための通常テキスト：`求人を応募しました｜〇〇店`
