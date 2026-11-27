@@ -77,7 +77,7 @@ const application = {
   dealerHistory: '',
   previousStore: '',
   dealerName: '',
-  preferredStore: '船橋店',
+  preferredStore: 'Poker Room Arkadia｜船橋店',
   phone: '09012345678',
   appeal: '接客経験があります。',
   interviewSlots: [
@@ -105,7 +105,7 @@ const payloadWithPhoto = vm.runInContext(
   context
 );
 
-assert.equal(altText, '求人応募｜Poker Room Arkadia 船橋店');
+assert.equal(altText, '求人応募｜Poker Room Arkadia｜船橋店');
 assert.equal(vm.runInContext("calculateAge('2000-04-22', new Date(2026, 10, 27))", context), 26);
 assert.equal(vm.runInContext("formatTimeJa('24:00')", context), '24時00分');
 const timeOptions = vm.runInContext('createTimeOptions(12 * 60, 24 * 60)', context);
@@ -118,7 +118,7 @@ assert.equal((dateOptions.match(/<option/g) || []).length, 32);
 assert.equal(payload.type, 'bubble');
 assert.equal(payload.size, 'giga');
 assert.equal(payload.header.contents[0].text, '求人応募');
-assert.equal(payload.header.contents[1].text, 'Poker Room Arkadia 船橋店');
+assert.equal(payload.header.contents[1].text, 'Poker Room Arkadia｜船橋店');
 assert.equal(payload.body.contents.some((item) => item.contents?.some((child) => child.text === '希望勤務店舗')), true);
 assert.equal(payload.body.contents.some((item) => item.contents?.some((child) => child.text === '年齢')), true);
 assert.equal(payload.body.contents.some((item) => item.contents?.some((child) => child.text === '添付あり：face.jpg')), true);
