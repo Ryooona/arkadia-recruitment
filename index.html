@@ -596,6 +596,14 @@
     // 任意。Apps Script側で設定した共有シークレットと同じ値にする。
     const BACKEND_SHARED_SECRET = '';
     const PREVIEW_MODE = new URLSearchParams(location.search).has('preview');
+    // 旧リッチメニューが公開ページURLを保持していても、LINE内ではLIFFへ引き継ぐ。
+    // LIFFから戻ってきたページには liff.state が付くため、二重遷移はしない。
+    const LIFF_LAUNCH_URL = `https://liff.line.me/${LIFF_ID}`;
+    const LINE_IN_APP_BROWSER = /Line\//i.test(navigator.userAgent);
+    const LIFF_STATE_PRESENT = new URLSearchParams(location.search).has('liff.state');
+    if (!PREVIEW_MODE && LINE_IN_APP_BROWSER && !LIFF_STATE_PRESENT) {
+      location.replace(LIFF_LAUNCH_URL);
+    }
     const INTERVIEW_DATE_RANGE_DAYS = 31;
     const INTERVIEW_TIME_START_MINUTES = 12 * 60;
     const INTERVIEW_TIME_END_MINUTES = 24 * 60;
